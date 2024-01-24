@@ -618,8 +618,15 @@ void cluster(t_non *non,float *rho){
    int i,j,k;
    int N;
    int n_seg;
+   float epsilon;
    FILE *handle;
    N=non->singles;
+
+   /* Define cutoff */
+   epsilon=2.0/3.0;
+   if (non->thres>0 && non->thres <1){
+       epsilon=non->thres;
+   }
 
    segments=(int *)calloc(N,sizeof(int));
 
@@ -632,7 +639,7 @@ void cluster(t_non *non,float *rho){
    for (i=0;i<N;i++){
        /* Run over all other sites */
        for (j=i+1;j<N;j++){
-	   if (rho[i+j*N]>0.5*sqrt(rho[i+i*N]*rho[j+j*N])){
+	   if (rho[i+j*N]>epsilon*sqrt(rho[i+i*N]*rho[j+j*N])){
 	      segments[j]=segments[i];
 	   }
        }
