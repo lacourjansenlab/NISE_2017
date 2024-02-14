@@ -17,8 +17,7 @@ void calc_DOS(t_non *non){
   float *re_S_1,*im_S_1; // The first-order response function
   float *Hamil_i_e;
   // Aid arrays
-  float *vecr,*veci;
-
+  float *vecr, *veci;
   /* Floats */
   float shift1;
   /* 1D Fourier transform */
@@ -39,6 +38,7 @@ void calc_DOS(t_non *non){
   int t1,fft;
   int elements;
   int cl,Ncl;
+  int pro_dim, ip;
 
   /* Time parameters */
   time_t time_now,time_old,time_0;
@@ -49,9 +49,13 @@ void calc_DOS(t_non *non){
   printf("Frequency shift %f.\n",shift1);
   non->shifte=shift1;
 
+  /* Check if projection keyword is defined and select number of subsets in */
+  /* projection */
+  pro_dim=project_dim(non);
+
   // Allocate memory
-  re_S_1=(float *)calloc(non->tmax,sizeof(float));
-  im_S_1=(float *)calloc(non->tmax,sizeof(float));
+  re_S_1=(float *)calloc(non->tmax*pro_dim,sizeof(float));
+  im_S_1=(float *)calloc(non->tmax*pro_dim,sizeof(float));
   nn2=non->singles*(non->singles+1)/2;
   Hamil_i_e=(float *)calloc(nn2,sizeof(float));
 
@@ -139,7 +143,7 @@ void calc_DOS(t_non *non){
       // Initialize time-evolution operator
       unitmat(vecr,non->singles);
       // Do projection on selected sites if asked
-      if (non->Npsites>0){
+      if (non->Npsites==1){
         for (i=0;i<non->singles;i++){
           j=i*non->singles;
           projection(vecr+j,non);
@@ -164,8 +168,19 @@ void calc_DOS(t_non *non){
         }
 	
 	// Find response
-	c_calc_DOS(re_S_1,im_S_1,t1,non,vecr,veci);
 
+        /* Do projection on selected sites if asked and calculate response function */
+        if (non->Npsites<2){
+          /* Find response without projection option */
+            c_calc_DOS(re_S_1,im_S_1,t1,non,vecr,veci);
+          } 
+	// else if (non->Npsites<non->singles){ }
+        else {
+            /* Find response with projection on multiple segments */
+            for (ip=0;ip<pro_dim;ip++){
+	      c_calc_DOS_multi_project(re_S_1+non->tmax*ip,im_S_1+non->tmax*ip,t1,non,vecr,veci,ip);
+            }
+         }
 	// Loop over vectors to propagate
 	       propagate_matrix(non,Hamil_i_e,vecr,veci,1,samples,t1);
       }
@@ -206,7 +221,11 @@ void calc_DOS(t_non *non){
   /* Save time domain response */
   outone=fopen("TD_DOS.dat","w");
   for (t1=0;t1<non->tmax1;t1+=non->dt1){
-    fprintf(outone,"%f %e %e\n",t1*non->deltat,re_S_1[t1]/samples,im_S_1[t1]/samples);
+    fprintf(outone,"%f ",t1*non->deltat);
+    for (ip=0;ip<pro_dim;ip++){
+      fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
+    }
+    fprintf(outone,"\n");
   }
   fclose(outone);
 
@@ -232,3 +251,17 @@ void c_calc_DOS(float *re_S_1,float *im_S_1,int t1,t_non *non,float *cr,float *c
   }
   return;
 }
+
+void c_calc_DOS_multi_project(float *re_S_1,float *im_S_1,int t1,t_non *non,float *cr,float *ci,int ip){
+  int i,j;
+  // Take trace of time-evolution operator
+  for (i=0;i<non->singles;i++){
+    if (non->psites[i]==ip){
+      j=i+i*non->singles;
+      re_S_1[t1]+=cr[j];
+      im_S_1[t1]+=ci[j];
+    }
+  }
+  return;
+}
+
