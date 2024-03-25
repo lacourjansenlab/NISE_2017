@@ -16,6 +16,7 @@
 #include "calc_2DIR.h"
 #include "calc_2DIRraman.h"
 #include "calc_2DES.h"
+#include "calc_CG_2DES.h"
 #include "analyse.h"
 #include "calc_CD.h"
 #include "calc_LD.h"
