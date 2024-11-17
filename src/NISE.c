@@ -29,6 +29,7 @@
 #include "correlate.h"
 #include <mpi.h>
 #include "omp.h"
+#include "1DFFT.h"
 
 
 
@@ -86,11 +87,13 @@ int main(int argc, char* argv[]) {
         time(&timeStart);
 
         /* Intro */
-        printf("----- ----- ----- ----- ----- -----\n");
-        printf("  Running the 23/8-2017 version of\n");
-        printf("              NISE3.1\n");
-        printf("    by Thomas la Cour Jansen.\n");
-        printf("----- ----- ----- ----- ----- -----\n");
+        printf("\n");
+        printf("----- ----- ----- ----- ----- ----- -----\n");
+        printf("                 NISE3.4\n");
+        printf("      by Thomas la Cour Jansen and\n");
+        printf("                co-workes.\n");
+        printf("    Running the %s Git version.\n",GIT_VERSION);
+        printf("----- ----- ----- ----- ----- ----- -----\n");
         printf("\n");
 
         // Read the input
@@ -150,7 +153,7 @@ int main(int argc, char* argv[]) {
     // Delegate to different subroutines depending on the technique
 
     // Call the Hamiltonian Analysis routine
-    if (string_in_array(non->technique,(char*[]){"Analyse","Analyze"},2)){
+    if (string_in_array(non->technique,(char*[]){"Analyse","Analyze","AnalyseFull","AnalyzeFull"},4)){
         // Does not support MPI
         if (parentRank == 0)
             analyse(non);
@@ -288,7 +291,8 @@ int main(int argc, char* argv[]) {
     if (!strcmp(non->technique, "CG_2DES") ||  (!strcmp(non->technique, "CG_2DES_doorway")) || 
      (!strcmp(non->technique, "CG_2DES_P_DA")) ||  (!strcmp(non->technique, "CG_2DES_window_GB"))
      ||  (!strcmp(non->technique, "CG_2DES_window_SE")) ||  (!strcmp(non->technique, "CG_2DES_window_EA"))
-     ||  (!strcmp(non->technique, "CG_full_2DES_segments")) ||  (!strcmp(non->technique, "combine_CG_2DES"))) {
+     ||  (!strcmp(non->technique, "CG_full_2DES_segments")) ||  (!strcmp(non->technique, "combine_CG_2DES"))
+     ||  (!strcmp(non->technique, "CG_2DES_waitingtime")) ) {
         /* Does not support MPI */
         if (parentRank == 0)
             calc_CG_2DES(non);
@@ -296,6 +300,26 @@ int main(int argc, char* argv[]) {
 
     // Call the 2DFD calculation routine
     if (!strcmp(non->technique, "2DFD")) { }
+
+    // Call the 1DFT calculation routine
+    if (!strcmp(non->technique, "1DFFT")) {
+        // Does not support MPI
+        if (parentRank == 0) {
+		if (cpus>1) not_parallel();
+                ONE_DFFT(non);
+        }
+    }
+    // Call the lineshape funnction for absorption
+    if (!strcmp(non->technique, "Lineshape_FFT")) {
+        // Does not support MPI
+        if (parentRank == 0) {
+		if (cpus>1) not_parallel();
+                Lineshape_FFT(non);
+        }
+    }
+
+
+
 
     // Do Master wrap-up work
     if (parentRank == 0) {
