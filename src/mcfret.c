@@ -17,11 +17,12 @@ void mcfret(t_non *non){
     int segments;
     /* Response functions for emission and absorption: real and imaginary part*/
     float *re_Abs,*im_Abs;
-    float *re_Emi,*im_Emi;
+    // float *re_Emi,*im_Emi;
     float *re_e,*im_e; /* Eigenvalues */
     float *vl,*vr; /* Left and right eigenvectors */
     float *energy_cor; /* Effective correction energy for QC */
     float *J;
+    float *rho_0;
     float *E;
     float *rate_matrix;
     float *coherence_matrix;
@@ -31,9 +32,10 @@ void mcfret(t_non *non){
     nn2=non->singles*non->singles;
     re_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
     im_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    re_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    im_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
+    // re_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
+    // im_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
     J=(float *)calloc(nn2,sizeof(float));
+    rho_0=(float *)calloc(nn2,sizeof(float));
     E=(float *)calloc(non->singles,sizeof(float));
     ave_vecr=(float *)calloc(non->singles*non->singles,sizeof(float));
 
@@ -50,7 +52,7 @@ void mcfret(t_non *non){
 
     /* Tell the user that we are in the MCFRET Routine */
     if (string_in_array(non->technique,(char*[]){"MCFRET",
-        "MCFRET-Autodetect","MCFRET-Absorption","ECFRET-Emission",
+        "MCFRET-Autodetect","MCFRET-Absorption","MCFRET-Emission",
         "MCFRET-Coupling","MCFRET-Rate","MCFRET-Analyse",
         "MCFRET-Density"},8)){
         printf("Performing MCFRET calculation.\n");
@@ -60,6 +62,7 @@ void mcfret(t_non *non){
         /* Calculate the average density matrix */
 	printf("Starting calculation of the average density matrix.\n");
         average_density_matrix(ave_vecr,non);
+	rho_0 = ave_vecr;
         write_matrix_to_file("Average_Density.dat",ave_vecr,non->singles);
     }
 
@@ -69,17 +72,17 @@ void mcfret(t_non *non){
         mcfret_response_function(re_Abs,im_Abs,non,0,ave_vecr);
     }
    
-/* Call the emission routine */
-    if (!strcmp(non->technique, "MCFRET") || (!strcmp(non->technique, "MCFRET-Emission"))){
-        printf("Starting calculation of the MCFRET emission matrix.\n");
-	/* Read precalculated average density matrix */ 
-	if (!strcmp(non->technique, "MCFRET-Emission")){
-            printf("Using precalculated average density matrix from file Average_Density.dat.\n");
-	    read_matrix_from_file("Average_Density.dat",ave_vecr,non->singles);
-	}
-        mcfret_response_function(re_Emi,im_Emi,non,1,ave_vecr);
-    }
-    
+    ///* Call the emission routine */
+    // if (!strcmp(non->technique, "MCFRET") || (!strcmp(non->technique, "MCFRET-Emission"))){
+    //    printf("Starting calculation of the MCFRET emission matrix.\n");
+    //	/* Read precalculated average density matrix */ 
+    // 	if (!strcmp(non->technique, "MCFRET-Emission")){
+    //       printf("Using precalculated average density matrix from file Average_Density.dat.\n");
+    //	    read_matrix_from_file("Average_Density.dat",ave_vecr,non->singles);
+    //	}
+    //    mcfret_response_function(re_Emi,im_Emi,non,1,ave_vecr);
+    // }
+
     /* Call the coupling routine */
     if (!strcmp(non->technique, "MCFRET") || (!strcmp(non->technique, "MCFRET-Coupling"))){
         printf("Starting calculation of the average inter segment coupling.\n");
@@ -94,11 +97,12 @@ void mcfret(t_non *non){
 	    printf("Calculating rate from precalculated absorption, emission\n");
 	    printf("and coupling!\n");
 	    read_matrix_from_file("CouplingMCFRET.dat",J,non->singles);
+	    read_matrix_from_file("Average_Density.dat",rho_0,non->singles);
 	    read_response_from_file("TD_absorption_matrix.dat",re_Abs,im_Abs,non->singles,non->tmax1);
-	    read_response_from_file("TD_emission_matrix.dat",re_Emi,im_Emi,non->singles,non->tmax1);
+	    // read_response_from_file("TD_emission_matrix.dat",re_Emi,im_Emi,non->singles,non->tmax1);
             printf("Completed reading pre-calculated data.\n");
         }
-        mcfret_rate(rate_matrix,coherence_matrix,segments,re_Abs,im_Abs,re_Emi,im_Emi,J,non);
+        mcfret_rate(rate_matrix,coherence_matrix,segments,re_Abs,im_Abs,rho_0,J,non);
 
         /* Write the calculated ratematrix to file */
         write_matrix_to_file("RateMatrix.dat",rate_matrix,segments);
@@ -133,9 +137,10 @@ void mcfret(t_non *non){
 
     free(re_Abs);
     free(im_Abs);
-    free(re_Emi);
-    free(im_Emi);
+    // free(re_Emi);
+    // free(im_Emi);
     free(J);
+    free(rho_0);
     free(E);
     free(rate_matrix);
     free(coherence_matrix);
@@ -476,7 +481,7 @@ void mcfret_autodetect(t_non *non, float treshold){
 
 /* Calculate actual rate matrix */
 void mcfret_rate(float *rate_matrix,float *coherence_matrix,int segments,float *re_Abs,float *im_Abs,
-    float *re_Emi,float *im_Emi,float *J,t_non *non){
+    float *rho_0,float *J,t_non *non){
     
     int nn2,N;
     int si,sj;
@@ -488,6 +493,7 @@ void mcfret_rate(float *rate_matrix,float *coherence_matrix,int segments,float *
     float isimple,is13; /* Variables for integrals */
     float *re_aux_mat,*im_aux_mat;
     float *re_aux_mat2,*im_aux_mat2;
+    float *re_Abs_hermi, *im_Abs_hermi;
     float *Zeros;
     float twoPi2;
     float trace_reaux, trace_imaux;
@@ -502,6 +508,8 @@ void mcfret_rate(float *rate_matrix,float *coherence_matrix,int segments,float *
     im_aux_mat=(float *)calloc(nn2,sizeof(float));
     re_aux_mat2=(float *)calloc(nn2,sizeof(float));
     im_aux_mat2=(float *)calloc(nn2,sizeof(float));
+    re_Abs_hermi=(float *)calloc(nn2,sizeof(float));
+    im_Abs_hermi=(float *)calloc(nn2,sizeof(float));
     Zeros=(float *)calloc(nn2,sizeof(float));
   
     ratefile=fopen("RateFile.dat","w");
@@ -513,18 +521,32 @@ void mcfret_rate(float *rate_matrix,float *coherence_matrix,int segments,float *
             if (sj!=si){
                 /* Loop over time delay */
                 for (t1=0;t1<non->tmax;t1++){
-                    /* Matrix multiplication - J Emi */
-                    segment_matrix_mul(J,Zeros,re_Emi+nn2*t1,im_Emi+nn2*t1,
+		    /* compute the hermitian conjugate of the absorption matrix */
+		    hermitian_conjugate(re_Abs+nn2*t1,im_Abs+nn2*t1,re_Abs_hermi,im_Abs_hermi,N);
+		    
+		    /* Matrix multiplication - J Abs_hermi */
+                    segment_matrix_mul(J,Zeros,re_Abs_hermi,im_Abs_hermi,
                     re_aux_mat,im_aux_mat,non->psites,segments,si,sj,sj,N);
-                    /* Matrix multiplication - Abs (J Emi) */
-                    segment_matrix_mul(re_Abs+nn2*t1,im_Abs+nn2*t1,re_aux_mat,im_aux_mat,
-                    re_aux_mat2,im_aux_mat2,non->psites,segments,si,si,sj,N);
-                    /* Matrix multiplication - J (Abs J Emi) */
-                    segment_matrix_mul(J,Zeros,re_aux_mat2,im_aux_mat2,
-                    re_aux_mat,im_aux_mat,non->psites,segments,sj,si,sj,N);
+  
+		    /* Matrix multiplication - (J Abs_hermi) rho_0 */
+	            segment_matrix_mul(re_aux_mat,im_aux_mat,rho_0,Zeros,
+                    re_aux_mat2,im_aux_mat2,non->psites,segments,si,sj,sj,N);
+ 
+
+                    printf("matrix check  %f\n",matrix_sum(J,N));
+                    // /* Matrix multiplication - J Emi */
+                    // segment_matrix_mul(J,Zeros,re_Emi+nn2*t1,im_Emi+nn2*t1,
+                    // re_aux_mat,im_aux_mat,non->psites,segments,si,sj,sj,N);
+                    
+		    /* Matrix multiplication - Abs (J Abs_hermi rho_0) */
+                    segment_matrix_mul(re_Abs+nn2*t1,im_Abs+nn2*t1,re_aux_mat2,im_aux_mat2,
+                    re_aux_mat,im_aux_mat,non->psites,segments,si,si,sj,N);
+                    /* Matrix multiplication - J  (Abs J Abs_hermi rho_0) */
+                    segment_matrix_mul(J,Zeros,re_aux_mat,im_aux_mat,
+                    re_aux_mat2,im_aux_mat2,non->psites,segments,sj,si,sj,N);
                     /* Take the trace */
-                    trace_reaux=trace_rate(re_aux_mat,N);
-                    trace_imaux=trace_rate(im_aux_mat,N);
+                    trace_reaux=trace_rate(re_aux_mat2,N);
+                    trace_imaux=trace_rate(im_aux_mat2,N);
                     rate_response[t1]=trace_reaux*twoPi2;
 	            abs_rate_response[t1]=sqrt(trace_reaux*trace_reaux
                                     +trace_imaux*trace_imaux)*twoPi2;
@@ -550,6 +572,8 @@ void mcfret_rate(float *rate_matrix,float *coherence_matrix,int segments,float *
     free(im_aux_mat);
     free(re_aux_mat2);
     free(im_aux_mat2);
+    free(re_Abs_hermi);
+    free(im_Abs_hermi);
     free(Zeros);
     free(ns);
     return;
@@ -1029,6 +1053,20 @@ float trace_rate(float *matrix,int N){
     return trace;
 }
 
+/* Find the sum of all matrix elements */
+float matrix_sum(float *matrix,int N){
+    int i,j;
+    float sum;
+    sum=0;
+    for (i=0;i<N;i++){
+        for (j=0;j<N;j++){
+        sum=sum+matrix[N*i+j];
+	printf("element %f\n",matrix[N*i+j]);
+	}
+    }
+    return sum;
+}
+
 /* Integrate the rate response */
 void integrate_rate_response(float *rate_response,int T,float *is13,float *isimple){
     int i;
@@ -1160,3 +1198,19 @@ void triangular_on_square(float *T,float *S,int N){
     free(inter);
     return;
 }
+
+/* Find Hermitian conjugate of square NxN matrix */
+void hermitian_conjugate(float *A_re, float *A_im, float *hermi_re, float *hermi_im, int N){
+    int a,b;
+    clearvec(hermi_re,N*N);
+    clearvec(hermi_im,N*N);
+
+    for (a=0;a<N;a++){
+        for (b=0;b<N;b++){
+            hermi_re[a+b*N] = A_re[b+a*N];
+	    hermi_im[a+b*N] = -A_im[b+a*N];
+	}
+    }
+    return;
+}
+
