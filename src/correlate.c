@@ -162,6 +162,12 @@ void calc_Correlation(t_non *non){
 
     TT=non->length; /* Total timesteps */
     T=non->tmax1; /* Length of correlation functions */
+    if (T>TT){
+       printf("Length is: %d\n",TT);
+       printf("First RunTimes parameters is: %d\n",T);
+       printf("Trajectory length should be longer\n");
+       printf("than the correlation function time.\n");
+    }  
     N=non->singles; /* Number of chromophores */
     nn2=N*(N+1)/2;
     traj1=(float *)calloc(TT,sizeof(float));
@@ -169,7 +175,12 @@ void calc_Correlation(t_non *non){
     traj3=(float *)calloc(TT,sizeof(float));
     corr=(float *)calloc(TT,sizeof(float));
     SD=(float *)calloc(TT,sizeof(float));
-    corr_matrix=(float *)calloc(nn2*T,sizeof(float));
+    if (string_in_array(non->technique,
+          (char*[]){"Autocorrelation"},1)){
+        corr_matrix=(float *)calloc(N*T,sizeof(float));
+    } else {
+        corr_matrix=(float *)calloc(nn2*T,sizeof(float));
+    }
     SD_matrix=(float *)calloc(N*TT,sizeof(float));
     lineshape_matrix_re=(float *)calloc(N*T,sizeof(float));
     lineshape_matrix_im=(float *)calloc(N*T,sizeof(float));
@@ -178,10 +189,10 @@ void calc_Correlation(t_non *non){
     Hamil_i_e=(float *)calloc(nn2,sizeof(float));
 
     domega=1.0/non->deltat/icm2ifs/TT;
-
+    
     /* Open Trajectory files */
     open_files(non,&H_traj,&mu_traj,&Cfile);
-
+    
     /* Loop over pairs */
     for (a=0;a<N;a++){
 	  for (b=a;b<N;b++){
@@ -191,22 +202,29 @@ void calc_Correlation(t_non *non){
 		  traj1[ti]=Hamil_i_e[Sindex(a,a,N)];
 		  traj2[ti]=Hamil_i_e[Sindex(b,b,N)];
 	    }
+        
 	    /* Do WK theorm */
 	    subtractMean(traj1,TT);
 	    subtractMean(traj2,TT);
         calculateCorrelation(traj1,traj2,corr,SD,TT);
+        
 	    /* Store in matrix */
 	    for (ti=0;ti<T;ti++){
-		//printf("%f ",traj1[ti]);
-		    corr_matrix[Sindex(a,b,N)*T+ti]=corr[ti]/TT;
-      }
-      if (a==b) {
-        for (ti=0;ti<TT;ti++){
+            if (string_in_array(non->technique,
+                (char*[]){"Autocorrelation"},1)){
+                corr_matrix[a*T+ti]=corr[ti]/TT;
+            } else {
+                corr_matrix[Sindex(a,b,N)*T+ti]=corr[ti]/TT;
+            }
+        }
+
+        if (a==b) {
+           for (ti=0;ti<TT;ti++){
              SD_matrix[a*TT+ti]=SD[ti]/TT;
-	      }
+	       }
         /* Generate lineshape function */
-        calc_Lineshape(non,SD,lineshape_matrix_re+T*a,lineshape_matrix_im+T*a,T,TT,domega);
-      }
+           calc_Lineshape(non,SD,lineshape_matrix_re+T*a,lineshape_matrix_im+T*a,T,TT,domega);
+        }
 	    /* Higher order correlations */
 	    if (a==b){
           for (ti=0;ti<TT;ti++){
@@ -241,7 +259,12 @@ void calc_Correlation(t_non *non){
 	  /* Loop through pairs */
 	  for (a=0;a<N;a++){
         for (b=a;b<N;b++){
-          fprintf(outone,"%e ",corr_matrix[Sindex(a,b,N)*T+ti]);
+            if (string_in_array(non->technique,
+                (char*[]){"Autocorrelation"},1)){
+                fprintf(outone,"%e ",corr_matrix[a*T+ti]);
+            } else {
+                fprintf(outone,"%e ",corr_matrix[Sindex(a,b,N)*T+ti]);
+            }
 		  /* Skip cross correlations if in autocorrelate mode */
           if (string_in_array(non->technique,
             (char*[]){"Autocorrelation"},1)){
