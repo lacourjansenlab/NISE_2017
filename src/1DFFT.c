@@ -187,10 +187,10 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
           fftIn[i][0]*=exp(-i*non->deltat*i*non->deltat/(2*non->inhomogen*non->inhomogen));
           fftIn[i][1]*=exp(-i*non->deltat*i*non->deltat/(2*non->inhomogen*non->inhomogen));
         }
-        if (non->lifetime < 0.0){ // Add Hann window / raised cosine window
+        if (non->window==1){ // Add Hann window / raised cosine window
           fftIn[i][0]*=cos(i*twoPi/(4*non->tmax-4))*cos(i*twoPi/(4*non->tmax-4));
           fftIn[i][1]*=cos(i*twoPi/(4*non->tmax-4))*cos(i*twoPi/(4*non->tmax-4));
-          printf("%f %f %f %f\n",i*non->deltat,fftIn[i][0],fftIn[i][1],cos(i*twoPi/(4*non->tmax-4))*cos(i*twoPi/(4*non->tmax-4)));
+//          printf("%f %f %f %f\n",i*non->deltat,fftIn[i][0],fftIn[i][1],cos(i*twoPi/(4*non->tmax-4))*cos(i*twoPi/(4*non->tmax-4)));
         }
 /*    fftIn[fft-i][0]=-im_S_1[i]/samples*exp(-i*non->deltat/(2*non->lifetime));
     fftIn[fft-i][1]=re_S_1[i]/samples*exp(-i*non->deltat/(2*non->lifetime));*/
