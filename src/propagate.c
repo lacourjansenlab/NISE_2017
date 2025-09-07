@@ -1459,4 +1459,239 @@ void propagate_double_sparce_ES(t_non* non, float* Ur, float* Ui, int* R, int* C
     free(vi);
 }
 
+/* Control 2DIR propagation */
+void propagate_double_2DIR_control(t_non* non, float* Hamil_i_e, float** ft1r, float** ft1i,
+                                  float* fr, float* fi, float** rightrr, float** rightri,
+                                  float* rightnr, float* rightni, int currentSample,
+                                  int molPol, int t3, float* Anh) {
 
+    /* Define variables */
+    float *Urs, *Uis;
+    int *Rs, *Cs;
+    int elements;
+    int t1;
+
+    /* Propagate */
+    if (non->propagation == 0) {
+        float* Urs = calloc(non->singles * non->singles, sizeof(float));
+        float* Uis = calloc(non->singles * non->singles, sizeof(float));
+
+        int* Rs = calloc(non->singles * non->singles, sizeof(int));
+        int* Cs = calloc(non->singles * non->singles, sizeof(int));
+
+        // bug? Cs and Rs seems to be exchanged (TLC just multiplying with imaginary number)
+        int elements = time_evolution_mat(non, Hamil_i_e, Urs, Uis, Cs, Rs, non->ts);
+        if (currentSample == non->begin && molPol == 0 && t3 == 0) {
+            printf("Sparse matrix efficiency: %f pct.\n",
+                (1 - (1.0 * elements / (non->singles * non->singles))) * 100);
+            printf("Present truncation %f.\n",
+                non->thres / ((double) non->deltat * icm2ifs * (double) twoPi / non->ts * (non->deltat *
+                icm2ifs * twoPi / non->ts)));
+            printf("Suggested truncation %f.\n", 0.001);
+        }
+
+        // Key parallel loop 1
+        // Initial step, former t1=-1
+        propagate_double_sparce(non, Urs, Uis, Rs, Cs, fr, fi, elements, non->ts, Anh);
+
+        int t1; // MSVC can't deal with C99 declarations inside a for with OpenMP
+#pragma omp parallel for \
+        shared(non, Anh, Urs, Uis, Rs, Cs, ft1r, ft1i) \
+        schedule(static, 1)
+
+        for(t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_double_sparce(non, Urs, Uis, Rs, Cs, ft1r[t1],
+                ft1i[t1], elements, non->ts, Anh
+            );
+        }
+
+        // Propagate vectors right
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_DIA_S(non, Hamil_i_e, rightnr, rightni, -1);
+
+        for(t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_DIA_S(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], -1
+            );
+        }
+
+        free(Urs), free(Uis), free(Rs), free(Cs);
+    }
+    else if(non->propagation == 1) {
+        // Key parallel loop 1
+        // Initial step
+        propagate_vec_coupling_S_doubles(
+            non, Hamil_i_e, fr, fi, non->ts,Anh); 
+
+        int t1;
+#pragma omp parallel for \
+        shared(non,Hamil_i_e,Anh,ft1r,ft1i) \
+        schedule(static, 1)
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_coupling_S_doubles(
+                non, Hamil_i_e, ft1r[t1], ft1i[t1], non->ts,Anh); 
+        }
+
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_coupling_S(
+            non, Hamil_i_e, rightnr, rightni, non->ts, -1
+        );
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_coupling_S(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], non->ts, -1
+            );
+        }
+    }
+	/* RK4 propagation */
+	else if(non->propagation == 3) {
+        // Key parallel loop 1
+        // Initial step
+        propagate_vec_RK4_doubles(
+            non, Hamil_i_e, fr, fi, non->ts,Anh);
+
+        int t1;
+#pragma omp parallel for \
+        shared(non,Hamil_i_e,Anh,ft1r,ft1i) \
+        schedule(static, 1)
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_RK4_doubles(
+                non, Hamil_i_e, ft1r[t1], ft1i[t1], non->ts,Anh);
+        }
+
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_RK4(
+            non, Hamil_i_e, rightnr, rightni, non->ts, -1
+        );
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_RK4(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], non->ts, -1
+            );
+        }
+    }
+}
+
+
+void propagate_double_2DES_control(t_non* non, float* Hamil_i_e, float** ft1r, float** ft1i,
+                                  float* fr, float* fi, float** rightrr, float** rightri,
+                                  float* rightnr, float* rightni, int currentSample,
+                                  int molPol, int t3) {
+
+    /* Define variables */
+    float *Urs, *Uis;
+    int *Rs, *Cs;
+    int elements;
+    int t1;
+
+    /* Propagate */
+    if (non->propagation == 0) {
+        float* Urs = calloc(non->singles * non->singles, sizeof(float));
+        float* Uis = calloc(non->singles * non->singles, sizeof(float));
+
+        int* Rs = calloc(non->singles * non->singles, sizeof(int));
+        int* Cs = calloc(non->singles * non->singles, sizeof(int));
+
+        // bug? Cs and Rs seems to be exchanged (TLC just multiplying with imaginary number)
+        int elements = time_evolution_mat(non, Hamil_i_e, Urs, Uis, Cs, Rs, non->ts);
+        if (currentSample == non->begin && molPol == 0 && t3 == 0) {
+            printf("Sparse matrix efficiency: %f pct.\n",
+                (1 - (1.0 * elements / (non->singles * non->singles))) * 100);
+            printf("Present truncation %f.\n",
+                non->thres / ((double) non->deltat * icm2ifs * (double) twoPi / non->ts * (non->deltat *
+                icm2ifs * twoPi / non->ts)));
+            printf("Suggested truncation %f.\n", 0.001);
+        }
+
+        // Key parallel loop 1
+        // Initial step, former t1=-1
+        propagate_double_sparce_ES(
+            non, Urs, Uis, Rs, Cs, fr, fi, elements, non->ts);
+
+        int t1; // MSVC can't deal with C99 declarations inside a for with OpenMP
+#pragma omp parallel for \
+        shared(non, Urs, Uis, Rs, Cs, ft1r, ft1i) \
+        schedule(static, 1)
+
+        for(t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_double_sparce_ES(
+                non, Urs, Uis, Rs, Cs, ft1r[t1],
+                ft1i[t1], elements, non->ts);
+        }
+
+        // Propagate vectors right
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_DIA_S(non, Hamil_i_e, rightnr, rightni, -1);
+
+        for(t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_DIA_S(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], -1
+            );
+        }
+
+        free(Urs), free(Uis), free(Rs), free(Cs);
+    }
+    else if(non->propagation == 1) {
+        // Key parallel loop 1
+        // Initial step
+        propagate_vec_coupling_S_doubles_ES(
+            non, Hamil_i_e, fr, fi, non->ts); 
+
+        int t1;
+#pragma omp parallel for \
+        shared(non,Hamil_i_e,ft1r,ft1i) \
+        schedule(static, 1)
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_coupling_S_doubles_ES(
+                non, Hamil_i_e, ft1r[t1], ft1i[t1], non->ts); 
+        }
+
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_coupling_S(
+            non, Hamil_i_e, rightnr, rightni, non->ts, -1
+        );
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_coupling_S(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], non->ts, -1
+            );
+        }
+    }
+	else if(non->propagation == 1) {
+        // Key parallel loop 1
+        // Initial step
+        propagate_vec_RK4_doubles_ES(
+            non, Hamil_i_e, fr, fi, non->ts);
+
+        int t1;
+#pragma omp parallel for \
+        shared(non,Hamil_i_e,ft1r,ft1i) \
+        schedule(static, 1)
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_RK4_doubles_ES(
+                non, Hamil_i_e, ft1r[t1], ft1i[t1], non->ts);
+        }
+
+        // Key parallel loop 2
+        // Initial step
+        propagate_vec_RK4(
+            non, Hamil_i_e, rightnr, rightni, non->ts, -1
+        );
+
+        for (t1 = 0; t1 < non->tmax1; t1++) {
+            propagate_vec_RK4(
+                non, Hamil_i_e, rightrr[t1], rightri[t1], non->ts, -1
+            );
+        }
+    }
+
+}
