@@ -150,6 +150,14 @@ void propagate_t2_DIA(t_non *non,float *Hamiltonian_i,float *cr,float *ci,float 
         }
     }
 
+    /* --- Mean-field Stokes shift adjustment on diagonal --- */
+    if (non->useStokesShift && non->stokesLambda) {
+        for (a = 0; a < N; a++) {
+            float pop_a = cr[a]*cr[a] + ci[a]*ci[a];
+            H[a + N * a] -= non->stokesLambda[a] * pop_a; /* cm^-1 */
+        }
+    }
+
     diagonalizeLPD(H, e, N);
     /* Exponentiate [U=exp(-i/h H dt)] */
     for (a = 0; a < N; a++) {
@@ -857,6 +865,15 @@ void propagate_vec_coupling_S(t_non* non, float* Hamiltonian_i, float* cr, float
             }
         }
     }
+
+    /* --- Mean-field Stokes shift (population-dependent) --- */
+    if (non->useStokesShift && non->stokesLambda) {
+        for (a = 0; a < N; a++) {
+            float pop_a = cr[a]*cr[a] + ci[a]*ci[a];
+            H0[a] -= non->stokesLambda[a] * pop_a; /* cm^-1 */
+        }
+    }
+
     kmax = k;
 
     /* Exponentiate diagonal [U=exp(-i/2h H0 dt)] */
