@@ -197,7 +197,7 @@ void readInput(int argc, char* argv[], t_non* non) {
         if (keyWordI("PrintLevel", Buffer, &non->printLevel, LabelLength) == 1) continue;
 
                 /* --- StokesSigma: 1 or N floats (cm^-1). Enables Stokes shift. --- */
-        if (keyWordI("Doubles", Buffer, &non->doubles, LabelLength) == 1) continue;
+        if (strncmp(Buffer, "StokesSigma", LabelLength) == 0 && LabelLength == strlen("StokesSigma")) {
             non->useStokesShift = 1;
 
             int N = non->singles;
@@ -244,6 +244,7 @@ void readInput(int argc, char* argv[], t_non* non) {
                 fprintf(stderr, "Error: Temperature must be > 0 when using StokesSigma.\n");
                 exit(1);
             }
+
             for (int i = 0; i < N; i++) {
                 float s = non->stokesSigma[i];
                 non->stokesLambda[i] = (s * s) / (2.0f * K_B_CM_PER_K * non->temperature);
@@ -255,6 +256,7 @@ void readInput(int argc, char* argv[], t_non* non) {
 
             continue;
         }
+
 
 
     }
