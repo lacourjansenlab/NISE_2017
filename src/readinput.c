@@ -197,7 +197,7 @@ void readInput(int argc, char* argv[], t_non* non) {
         if (keyWordI("PrintLevel", Buffer, &non->printLevel, LabelLength) == 1) continue;
 
                 /* --- StokesSigma: 1 or N floats (cm^-1). Enables Stokes shift. --- */
-        if (strncmp(Buffer, "StokesSigma", LabelLength) == 0 && LabelLength == strlen("StokesSigma")) {
+        if (keyWordI("Doubles", Buffer, &non->doubles, LabelLength) == 1) continue;
             non->useStokesShift = 1;
 
             int N = non->singles;
