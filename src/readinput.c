@@ -245,14 +245,9 @@ void readInput(int argc, char* argv[], t_non* non) {
                 exit(1);
             }
 
-            for (int i = 0; i < N; i++) {
-                float s = non->stokesSigma[i];
-                non->stokesLambda[i] = (s * s) / (2.0f * K_B_CM_PER_K * non->temperature);
-            }
+            
 
-            printf("StokesShift enabled. Computed lambda_i (cm^-1):");
-            for (int i = 0; i < N; ++i) printf(" %.2f", non->stokesLambda[i]);
-            printf("\n");
+            
 
             continue;
         }
@@ -262,6 +257,20 @@ void readInput(int argc, char* argv[], t_non* non) {
     }
     while (1 == 1);
     fclose(inputFile);
+
+        /* Make StokesSigma independent of line order: recompute lambda with final T */
+    if (non->useStokesShift && non->stokesSigma && non->stokesLambda) {
+        const float K_B_CM_PER_K = 0.6950348f;
+        if (non->temperature <= 0.0f) {
+            fprintf(stderr, "Error: Temperature must be > 0 when using StokesSigma.\n");
+            exit(1);
+        }
+        for (int i = 0; i < non->singles; ++i) {
+            float s = non->stokesSigma[i];
+            non->stokesLambda[i] = (s * s) / (2.0f * K_B_CM_PER_K * non->temperature);
+        }
+    }
+
 
     non->dt1 = 1, non->dt2 = 1, non->dt3 = 1;
     // Set length of linear response function
