@@ -212,15 +212,25 @@ int propagate_vec_DIA_S(t_non* non, float* Hamiltonian_i, float* cr, float* ci, 
     crr = (float *)calloc(N2, sizeof(float));
     cri = (float *)calloc(N2, sizeof(float));
 
-    /* Build Hamiltonian */
+        /* Build Hamiltonian */
     for (a = 0; a < N; a++) {
-        H[a + N * a] = Hamiltonian_i[a + N * a - (a * (a + 1)) / 2]; /* Diagonal*/
+        H[a + N * a] = Hamiltonian_i[a + N * a - (a * (a + 1)) / 2]; /* Diagonal */
         for (b = a + 1; b < N; b++) {
             H[a + N * b] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
             H[b + N * a] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
         }
     }
+
+    /* --- Mean-field Stokes shift (for Pop + Sparse) --- */
+    if (non->useStokesShift && non->stokesLambda) {
+        for (a = 0; a < N; a++) {
+            float pop_a = cr[a]*cr[a] + ci[a]*ci[a];
+            H[a + N * a] -= non->stokesLambda[a] * pop_a;  /* cm^-1 */
+        }
+    }
+
     diagonalizeLPD(H, e, N);
+    
     /* Exponentiate [U=exp(-i/h H dt)] */
     for (a = 0; a < N; a++) {
         re_U[a] = cos(e[a] * f);

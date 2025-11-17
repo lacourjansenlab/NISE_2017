@@ -245,6 +245,10 @@ void readInput(int argc, char* argv[], t_non* non) {
                 exit(1);
             }
 
+            printf("DEBUG: StokesSigma has been enabled. First sigma = %f, count = %d\n",
+            non->stokesSigma[0], cnt);
+
+
             
 
             
