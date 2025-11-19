@@ -84,6 +84,9 @@ typedef struct {
   int window; // 0 no window, 1 Hann window
   int *psites;
   int printLevel;
+  int useStokesShift;   /* 0=off (default), 1=on */
+  float *stokesSigma;     /* [singles], cm^-1 */
+  float *stokesLambda;    /* [singles], cm^-1 (computed from sigma, T) */
 } t_non;
 
 #define RESET   "\033[0m"

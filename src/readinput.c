@@ -39,6 +39,9 @@ void readInput(int argc, char* argv[], t_non* non) {
     non->homogen=0.0;
     non->inhomogen=0.0;
     non->window=0; // No windowing by default
+    non->useStokesShift = 0;
+    non->stokesSigma    = NULL;
+    non->stokesLambda   = NULL;
     sprintf(non->basis, "Local");
     sprintf(non->hamiltonian, "Full");
     sprintf(non->pbcFName, "");
@@ -193,10 +196,85 @@ void readInput(int argc, char* argv[], t_non* non) {
         // Read double excited states
         if (keyWordI("PrintLevel", Buffer, &non->printLevel, LabelLength) == 1) continue;
 
+                /* --- StokesSigma: 1 or N floats (cm^-1). Enables Stokes shift. --- */
+        if (strncmp(Buffer, "StokesSigma", LabelLength) == 0 && LabelLength == strlen("StokesSigma")) {
+            non->useStokesShift = 1;
+
+            int N = non->singles;
+            if (N <= 0) {
+                fprintf(stderr, "Error: 'StokesSigma' must appear after 'Singles' is defined.\n");
+                exit(1);
+            }
+
+            /* Allocate arrays */
+            non->stokesSigma  = (float*)calloc(N, sizeof(float));
+            non->stokesLambda = (float*)calloc(N, sizeof(float));
+
+            /* Start tokenizing from after the label */
+            char *rest = Buffer + LabelLength;
+            while (*rest == ' ' || *rest == '\t') rest++;
+            char *p = strtok(rest, " \t\r\n");
+
+            /* Read values */
+            int cnt = 0;
+            float vals[2048];
+            while (p && cnt < 2048) {
+                vals[cnt++] = (float)atof(p);
+                p = strtok(NULL, " \t\r\n");
+            }
+
+            if (cnt == 0) {
+                fprintf(stderr, "Error: StokesSigma given with no values.\n");
+                exit(1);
+            }
+
+            /* Broadcast or per-site */
+            if (cnt == 1) {
+                for (int i = 0; i < N; i++) non->stokesSigma[i] = vals[0];
+            } else if (cnt == N) {
+                for (int i = 0; i < N; i++) non->stokesSigma[i] = vals[i];
+            } else {
+                fprintf(stderr, "Error: StokesSigma count (%d) must be 1 or Singles (%d).\n", cnt, N);
+                exit(1);
+            }
+
+            /* Compute lambda_i = sigma_i^2 / (2 K_B T) */
+            const float K_B_CM_PER_K = 0.6950348f;
+            if (non->temperature <= 0.0f) {
+                fprintf(stderr, "Error: Temperature must be > 0 when using StokesSigma.\n");
+                exit(1);
+            }
+
+            printf("DEBUG: StokesSigma has been enabled. First sigma = %f, count = %d\n",
+            non->stokesSigma[0], cnt);
+
+
+            
+
+            
+
+            continue;
+        }
+
+
 
     }
     while (1 == 1);
     fclose(inputFile);
+
+        /* Make StokesSigma independent of line order: recompute lambda with final T */
+    if (non->useStokesShift && non->stokesSigma && non->stokesLambda) {
+        const float K_B_CM_PER_K = 0.6950348f;
+        if (non->temperature <= 0.0f) {
+            fprintf(stderr, "Error: Temperature must be > 0 when using StokesSigma.\n");
+            exit(1);
+        }
+        for (int i = 0; i < non->singles; ++i) {
+            float s = non->stokesSigma[i];
+            non->stokesLambda[i] = (s * s) / (2.0f * K_B_CM_PER_K * non->temperature);
+        }
+    }
+
 
     non->dt1 = 1, non->dt2 = 1, non->dt3 = 1;
     // Set length of linear response function
