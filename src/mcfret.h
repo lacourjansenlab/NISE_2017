@@ -38,8 +38,17 @@ void propagate_vector_segments(t_non *non,float * Hamil_i_e,float *vecr,float *v
 void propagate_matrix_segments(t_non *non,float * Hamil_i_e,float *vecr,float *veci,int sign,int samples,int display, int N_i);
 void propagate_vec_coupling_S_segments(t_non* non, float* Hamiltonian_i, float* cr, float* ci, int m, int sign, int N_i);
 
-void hermitian_conjugate(float *A_re, float *A_im, float *hermi_re, float *hermi_im, int N);
+void hermitian_conjugate(float *A_re, float *A_im, float *hermi_re, float *hermi_im, int N1, int N2);
 void mcfret_rate_from_abs(float *rate_matrix,float *coherence_matrix,int segments,float *re_Abs,float *im_Abs, float *rho_0,float *J,t_non *non);
 
+void write_propagator_to_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti);
+void read_propagator_from_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti);
+void propagate_snapshot(float *U_snap_re, float *U_snap_im, float *U_comp_re, float *U_comp_im, int N);
+void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, float *C_re, float *C_im,int N1,int N2,int N3);
+void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1, float *UDh_rho_J_UA_im_t1, float *UAh_Jh_rho_UD_re_t1, float *UAh_Jh_rho_UD_im_t1, float *rho0_D,float *J, float *U_re_t1_array, float *U_im_t1_array, int N_A, int N_D, int s_A, int s_D, int largest_segment_size, int N_t1);
+void compute_4_intermediate_products(float *intermediate_product_1_re,float *intermediate_product_1_im,float *intermediate_product_2_re,float *intermediate_product_2_im,float *intermediate_product_3_re,float *intermediate_product_3_im,float *intermediate_product_4_re,float *intermediate_product_4_im,float *UDh_rho_J_UA_re_t1,float *UDh_rho_J_UA_im_t1,float *Jh_UDh_tw_re, float *Jh_UDh_tw_im, float *Jh_UD_tw_re, float *Jh_UD_tw_im, float *UD_tw_re, float *UD_tw_im, float *UA_Jh_tw_re, float *UA_Jh_tw_im,float *UAh_Jh_tw_re, float *UAh_Jh_tw_im, float *UAh_Jh_rho_UD_re_t1, float *UAh_Jh_rho_UD_im_t1, float *J_UAh_Jh_tw_re, float *J_UAh_Jh_tw_im, float *UA_tw_re, float *UA_tw_im, float *J, float *J_zeros, int N_D, int N_A, int N_t1);
+void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_4th_I, float *rate_matrix_4th_II, float *rate_matrix_2nd, int N_segments, int N_tw, t_non *non);
+void fourth_order_response_1_sample(float *rho0_D, float *J, float *integrated_response_tw, float *U_re_t1_array, float *U_im_t1_array, float *U_re_tw_array, float *U_im_tw_array, float *U_re_t2_array, float *U_im_t2_array, int N_A, int N_D, int N_t1, int N_tw, int N_t2, int s_D, int s_A, int N_segments, int largest_segment_size, t_non *non);
+void full_4th_order_main(float *rho_0,float *J_full,t_non *non);
 
 #endif /* _MCFRET_ */
