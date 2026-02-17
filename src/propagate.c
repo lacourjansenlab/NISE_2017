@@ -1315,11 +1315,16 @@ void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, 
     N = Ni;
     f = non->deltat * icm2ifs * twoPi;
     H = (float *)calloc(N * N, sizeof(float));
-    re_U = (float *)calloc(N, sizeof(float));
-    im_U = (float *)calloc(N, sizeof(float));
+    re_U = (float *)calloc(N * N, sizeof(float));
     e = (float *)calloc(N, sizeof(float));
+    im_U = (float *)calloc(N * N, sizeof(float));
     cnr = (float *)calloc(N * N, sizeof(float));
     cni = (float *)calloc(N * N, sizeof(float));
+
+    // clear the output array
+    memset(Ur, 0, N*N*sizeof(float));
+    memset(Ui, 0, N*N*sizeof(float));
+
     /* Build Hamiltonian */
     for (a = 0; a < N; a++) {
         H[a + N * a] = Hamiltonian_i[a + N * a - (a * (a + 1)) / 2]; // Diagonal
@@ -1328,11 +1333,13 @@ void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, 
             H[b + N * a] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
         }
     }    diagonalizeLPD(H, e, N);
+    
     /* Exponentiate [U=exp(-i/h H dt)] */
     for (a = 0; a < N; a++) {
         re_U[a] = cos(e[a] * f);
         im_U[a] = -sin(e[a] * f);
     }
+
     /* Transform to site basis */
     for (a = 0; a < N; a++) {
         for (b = 0; b < N; b++) {
