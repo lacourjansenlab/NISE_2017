@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
 
     /* Call the CG_2DES Routine */
     if (string_in_array(non->technique,(char*[]){"CG_2DES","CG_2DES_doorway","CG_2DES_window_GB","CG_2DES_window_SE","CG_2DES_window_EA",
-        "CG_2DES_waitingtime"},6)){
+        "CG_2DES_waitingtime","CG_2DES_combine"},7)){
         /* Does not support MPI */
         if (parentRank == 0)
             calc_CG_2DES(non);
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     /* Call the FD_CG_2DES Routine */
     if (string_in_array(non->technique,(char*[]){"FD_CG_2DES","FD_CG_2DES_doorway","FD_CG_2DES_window_GB","FD_CG_2DES_window_SE",
-            "FD_CG_2DES_window_EA","FD_CG_2DES_waitingtime"},6)){    
+            "FD_CG_2DES_window_EA","FD_CG_2DES_waitingtime","FD_CG_2DES_combine"},7)){    
 	/* Does not support MPI */
 	    if (parentRank ==0)
 	        calc_FD_CG_2DES(non);
