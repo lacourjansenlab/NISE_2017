@@ -2197,9 +2197,9 @@ void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, 
     clearvec(C_im,N_1*N_2);
 
 // can make paralllel but check for loop order: warnings recieved
-#pragma omp parallel for
+#pragma omp parallel for private(i2,i3,Aim_i1i3,Are_i1i3)
+for (i1=0;i1<N_1;i1++){
     for (i3=0;i3<N_3;i3++){
-        for (i1=0;i1<N_1;i1++){
 	    Aim_i1i3 = A_im[i1*N_3+i3];
 	    Are_i1i3 = A_re[i1*N_3+i3];
             for (i2=0;i2<N_2;i2++){
@@ -2397,11 +2397,12 @@ void compute_4_intermediate_products(fourth_order_workspace *ws, fourth_order_pa
     free(intermediate_DA_im);
 }
 
-void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_4th_I, float *rate_matrix_4th_II, float *rate_matrix_2nd, int N_segments, int N_tw, t_non *non, float prefactor){
+void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_4th_I, float *rate_matrix_4th_II, float *rate_matrix_2nd, int N_segments, int N_tw, t_non *non, float prefactor, int samples){
     // integrate the waiting time response for each segment combination 
     int si, sj, tw;
     float response, plateau_I, plateau_II;
     float dt = (float)non->deltat;
+    float weight;
     clearvec(rate_matrix_4th_I, N_segments*N_segments);
     clearvec(rate_matrix_4th_II, N_segments*N_segments);
 
@@ -2409,17 +2410,19 @@ void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_
         for (sj=0;sj<N_segments;sj++){
             if (si != sj){	
                 plateau_I = -1e-6 * rate_matrix_2nd[si+N_segments*sj] * (rate_matrix_2nd[si+N_segments*sj] + rate_matrix_2nd[sj+N_segments*si]);
-                plateau_II = responses_4th_tw[N_segments * N_segments * (N_tw - 1) + si * N_segments + sj] * prefactor;
+                plateau_II = responses_4th_tw[N_segments * N_segments * (N_tw - 1) + si * N_segments + sj] * prefactor / samples;
+		printf("Plateaus: %e, %e\n", plateau_I, plateau_II);
                 for (tw=0;tw<N_tw;tw++){
-                    response = responses_4th_tw[N_segments * N_segments * tw + si * N_segments + sj] * prefactor;
+		    weight = 1;
+                    response = responses_4th_tw[N_segments * N_segments * tw + si * N_segments + sj] * prefactor / samples;
                     if (tw == 0){
-                        response /= 2;
+                        weight =  0.5;
                     }
-                    rate_matrix_4th_I[si + N_segments * sj] += dt * (response - plateau_I) * 1e3; // convert to inverse picoseconds
-                    rate_matrix_4th_II[si + N_segments * sj] += dt * (response - plateau_II) * 1e3;
+                    rate_matrix_4th_I[si + N_segments * sj] += weight * dt * (response - plateau_I) * 1e3; // convert to inverse picoseconds
+                    rate_matrix_4th_II[si + N_segments * sj] += weight * dt * (response - plateau_II) * 1e3;
                 }
             }
-	    }
+	}
     }
 }
 
@@ -2573,7 +2576,7 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
 	// J_UAh_Jh_tw = J @ UAh_Jh_tw
 	complex_matrix_product(J, J_zeros, UAh_Jh_tw_re, UAh_Jh_tw_im, J_UAh_Jh_tw_re, J_UAh_Jh_tw_im,N_D,N_D,N_A);
 	// UA_Jh_tw = UA_tw @ J.T
-        complex_matrix_product(UA_tw_re, UA_tw_im, JT, J_zeros, UA_Jh_tw_re, UA_Jh_tw_im, N_A, N_D, N_A);
+    complex_matrix_product(UA_tw_re, UA_tw_im, JT, J_zeros, UA_Jh_tw_re, UA_Jh_tw_im, N_A, N_D, N_A);
 
 	// clear the four intermediate product arrays
     clearvec(intermediate_product_1_re, N_D*N_A*N_t1);
@@ -2643,8 +2646,8 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
 	for(t2=0;t2<N_t2;t2++){
             //compute the hermitian conjugate of the acceptor t2 propagator
             hermitian_conjugate(UA_comp_t2_re, UA_comp_t2_im, UA_comp_h_t2_re, UA_comp_h_t2_im, N_A, N_A);
-	    // printf("N_A UA_comp_t2_re, UA_comp_t2_im: %d %f, %f\n",N_A, matrix_sum(UA_comp_t2_re, N_A), matrix_sum(UA_comp_t2_im, 9));
-        // printf("UD_comp_t2_re, UD_comp_t2_im: %f, %f\n", matrix_sum(UD_comp_t2_re,9), matrix_sum(UD_comp_t2_im, 9) );
+	        // printf("N_A UA_comp_t2_re, UA_comp_t2_im: %d %f, %f\n",N_A, matrix_sum(UA_comp_t2_re, N_A), matrix_sum(UA_comp_t2_im, 9));
+            // printf("UD_comp_t2_re, UD_comp_t2_im: %f, %f\n", matrix_sum(UD_comp_t2_re,9), matrix_sum(UD_comp_t2_im, 9) );
             // printf("N_D, UA_snap_t2_re, UA_snap_t2_im: %d %f, %f\n",N_D, matrix_sum(UA_snap_t2_re, N_A), matrix_sum(UA_snap_t2_im, 9));
             // printf("N_D, UD_snap_t2_re, UD_snap_t2_im: %d %f, %f\n",N_D, matrix_sum(UD_snap_t2_re, 9), matrix_sum(UD_snap_t2_im, 9));
 
@@ -2653,27 +2656,28 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
 
             // precalculate the full t2 factors
             // UAh_Jh_UD_t2 = UA_comp_t2_h @ J.T @ UD_comp_t2
-	    // the J_zeros could be made faster, as this step is unnecessary 
+	        // the J_zeros could be made faster, as this step is unnecessary 
             // printf("UA_comp_h_t2_re, UA_comp_h_t2_im: %f, %f\n", matrix_sum(UA_comp_h_t2_re,9), matrix_sum(UA_comp_h_t2_im, 9) );
             complex_matrix_product(UA_comp_h_t2_re, UA_comp_h_t2_im, JT, J_zeros, temp_re, temp_im,N_A,N_D,N_A);
             // printf("temp_re, temp_im: %f, %f\n", matrix_sum(temp_re,9), matrix_sum(temp_im, 9) );
             // printf("JT , J_zeros: %f, %f\n", matrix_sum(J,9), matrix_sum(J_zeros, 9) );
             // printf("UD_comp_t2_re, UD_comp_t2_im: %f, %f\n", matrix_sum(UD_comp_t2_re,9), matrix_sum(UD_comp_t2_im, 9) );
-	    complex_matrix_product(temp_re, temp_im, UD_comp_t2_re, UD_comp_t2_im,UAh_Jh_UD_t2_re, UAh_Jh_UD_t2_im, N_A, N_D, N_D);
-	    //UDh_J_UA_t2 = UAh_Jh_UD_t2.conj().T
+	        complex_matrix_product(temp_re, temp_im, UD_comp_t2_re, UD_comp_t2_im,UAh_Jh_UD_t2_re, UAh_Jh_UD_t2_im, N_A, N_D, N_D);
+	        //UDh_J_UA_t2 = UAh_Jh_UD_t2.conj().T
             hermitian_conjugate(UAh_Jh_UD_t2_re,UAh_Jh_UD_t2_im, UDh_J_UA_t2_re, UDh_J_UA_t2_im, N_A, N_D);
              
-	    // precalculated all t1 information outside the loops, so it is more efficient
+	        // precalculated all t1 information outside the loops, so it is more efficient
             // now the most nested loop only involves a single matrix multiplication per Feynman Diagram
              
             for (t1=0;t1<N_t1;t1++){
                 // define the 4 unique matrix products (one for each double-sided Feynman diagram)
-		// only the real part of the final products will be needed
-		// matrix_product_1 = intermediate_product_1[t1] @ UAh_Jh_UD_t2
+		        // only the real part of the final products will be needed
+		        // matrix_product_1 = intermediate_product_1[t1] @ UAh_Jh_UD_t2
                 // matrix_product_2 = intermediate_product_2[t1] @ UDh_J_UA_t2
                 // matrix_product_3 = intermediate_product_3[t1] @ UDh_J_UA_t2
                 // matrix_product_4 = intermediate_product_4[t1] @ UDh_J_UA_t2
-		// there are 8 ~N^2 computations in this most nested loop
+		        
+                // there are 8 ~N^2 computations in this most nested loop
                 // printf("intermediate_product_1_re, UAh_Jh_UD_t2_re: %f, %f\n",matrix_sum(intermediate_product_1_re+t1*N_A*N_D, N_A), matrix_sum(UAh_Jh_UD_t2_re, 9));
                 // printf("intermediate_product_1_im, UAh_Jh_UD_t2_im: %f, %f\n",matrix_sum(intermediate_product_1_im+t1*N_A*N_D, N_A), matrix_sum(UAh_Jh_UD_t2_im, 9));
                 diagram_1[t1 + N_t1*t2] += matrix_mul_traced_DA(intermediate_product_1_re+t1*N_A*N_D, UAh_Jh_UD_t2_re, N_D, N_A);
@@ -2694,11 +2698,11 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
                 
             }//close the loop over t1
 
-	    // U_A_comp_t2 represents U_A(tw+t2,tw)
+	        // U_A_comp_t2 represents U_A(tw+t2,tw)
             // multiply from the left, because t2 is forward in time
             // place this after the t1 loop such that the first t2 diagram has the unity propagator.
   
-	    // calculate the compounded propagators for each t2
+	        // calculate the compounded propagators for each t2
             // these propagators run from
             //     'coherence interval length' + 'waiting time'
             //                            to
@@ -2718,20 +2722,20 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     // this actually assumes that N_t1 and N_t2 are equal
     
     // this should be turned on for better integration (turned off for intermediate testing)
-    for (t1 = 0; t1< N_t1;t1++){
-        diagram_1[t1+0] /= 2; // first row/column
-	    diagram_1[t1*N_t1+0] /=2; //first row/column
-        diagram_2[t1+0] /= 2; // first row/column
-	    diagram_2[t1*N_t1+0] /=2; //first row/column
-        diagram_3[t1+0] /= 2; // first row/column
-	    diagram_3[t1*N_t1+0] /=2; //first row/column
-        diagram_4[t1+0] /= 2; // first row/column
-	    diagram_4[t1*N_t1+0] /=2; //first row/column
-    }
+    // for (t1 = 0; t1< N_t1;t1++){
+    //     diagram_1[t1+0] /= 2; // first row/column
+	//     diagram_1[t1*N_t1+0] /=2; //first row/column
+    //     diagram_2[t1+0] /= 2; // first row/column
+	//     diagram_2[t1*N_t1+0] /=2; //first row/column
+    //     diagram_3[t1+0] /= 2; // first row/column
+	//     diagram_3[t1*N_t1+0] /=2; //first row/column
+    //     diagram_4[t1+0] /= 2; // first row/column
+	//     diagram_4[t1*N_t1+0] /=2; //first row/column
+    // }
     for (t1 = 0; t1< N_t1;t1++){
         for (t2 = 0; t2< N_t2;t2++){
             integrated_response_tw[s_D * N_segments + s_A + N_segments * N_segments * tw] += diagram_1[t1 + N_t1*t2] + diagram_2[t1 + N_t1*t2] + diagram_3[t1 + N_t1*t2] + diagram_4[t1 + N_t1*t2];
-	}
+	    }
     }
 
     }//close the loop over the waiting time
@@ -2983,23 +2987,23 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
                 // isolate the segment i with projection routine to obtain smaller matrix
                 isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_site_si, non);
-                        // Propagate segment i (~N_i^3 process)
-                        // propagate after writing to big array, such that first propagator is identity
+                // Propagate segment i (~N_i^3 process)
+                // propagate after writing to big array, such that first propagator is identity
                 time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_site_si);
                 propagate_snapshot(U_re_snap, U_im_snap, U_re, U_im, N_site_si);
 
-                    }//closing the prerun over tw
+            }//closing the prerun over tw
                 
                 // initialize the n_i * n_i propagator as a unit matrix
-            unitmat(U_re,N_site_si);
-            clearvec(U_im,N_site_si*N_site_si);  
+            unitmat(U_re_snap,N_site_si);
+            clearvec(U_im_snap,N_site_si*N_site_si);  
             
             printf("Starting the t2 interval preparation");
             /* Loop over the needed t2 interval, this naturally has overlap with the snapshots of tw. propagate this one forward in time */
             /* For the t2 interval, store the individual snapshots, rather than the compounded propagators */
             /* The actual propagation (combination of specific snapshot propagators) will be done in the 3d time loop */
             for (ti=0;ti<times_N2;ti++){
-                tj = t_ref+N_t1 + ti; //+1 to ensure the +0 snapshot belongs to the t1 interval
+                tj = t_ref+N_t1 + ti +1; //+1 to ensure the +0 snapshot belongs to the t1 interval
                 write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
                 write_propagator_to_big_array(big_propagator_array_t2_im,U_im_snap,times_N2,si,N_site_si, N_site_max, ti);
                 /* Read Hamiltonian */
@@ -3100,7 +3104,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     fclose(log);
 
     // compute the two rate matrices here, using either the TD-MCFRET information or the limiting response value as plateau
-    compute_rate_from_4th_response(responses_4th_tw, rate_matrix_4th_I, rate_matrix_4th_II, rate_matrix_2nd, N_segments, N_tw, non, prefactor);
+    compute_rate_from_4th_response(responses_4th_tw, rate_matrix_4th_I, rate_matrix_4th_II, rate_matrix_2nd, N_segments, N_tw, non, prefactor, samples);
        
     // write Rate Matrix 4th order to file
     int row, column;
@@ -3108,8 +3112,8 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     rate_matrix_4th_II_file = fopen("RateMatrix_4th_II.dat","w");
     for (row=0;row<N_segments;row++){
         for (column=0;column<N_segments;column++){
-            fprintf(rate_matrix_4th_I_file,"%f ", rate_matrix_4th_I[column + row *N_segments] / samples);
-            fprintf(rate_matrix_4th_II_file,"%f ", rate_matrix_4th_II[column + row *N_segments] / samples);
+            fprintf(rate_matrix_4th_I_file,"%f ", rate_matrix_4th_I[column + row *N_segments]);
+            fprintf(rate_matrix_4th_II_file,"%f ", rate_matrix_4th_II[column + row *N_segments]);
         }
         fprintf(rate_matrix_4th_I_file,"\n");
         fprintf(rate_matrix_4th_II_file,"\n");
