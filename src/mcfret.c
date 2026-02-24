@@ -2722,16 +2722,16 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     // this actually assumes that N_t1 and N_t2 are equal
     
     // this should be turned on for better integration (turned off for intermediate testing)
-    // for (t1 = 0; t1< N_t1;t1++){
-    //     diagram_1[t1+0] /= 2; // first row/column
-	//     diagram_1[t1*N_t1+0] /=2; //first row/column
-    //     diagram_2[t1+0] /= 2; // first row/column
-	//     diagram_2[t1*N_t1+0] /=2; //first row/column
-    //     diagram_3[t1+0] /= 2; // first row/column
-	//     diagram_3[t1*N_t1+0] /=2; //first row/column
-    //     diagram_4[t1+0] /= 2; // first row/column
-	//     diagram_4[t1*N_t1+0] /=2; //first row/column
-    // }
+    for (t1 = 0; t1< N_t1;t1++){
+        diagram_1[t1+0] /= 2; // first row/column
+	    diagram_1[t1*N_t1+0] /=2; //first row/column
+        diagram_2[t1+0] /= 2; // first row/column
+	    diagram_2[t1*N_t1+0] /=2; //first row/column
+        diagram_3[t1+0] /= 2; // first row/column
+	    diagram_3[t1*N_t1+0] /=2; //first row/column
+        diagram_4[t1+0] /= 2; // first row/column
+	    diagram_4[t1*N_t1+0] /=2; //first row/column
+    }
     for (t1 = 0; t1< N_t1;t1++){
         for (t2 = 0; t2< N_t2;t2++){
             integrated_response_tw[s_D * N_segments + s_A + N_segments * N_segments * tw] += diagram_1[t1 + N_t1*t2] + diagram_2[t1 + N_t1*t2] + diagram_3[t1 + N_t1*t2] + diagram_4[t1 + N_t1*t2];
@@ -2993,28 +2993,23 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 propagate_snapshot(U_re_snap, U_im_snap, U_re, U_im, N_site_si);
 
             }//closing the prerun over tw
-                
-                // initialize the n_i * n_i propagator as a unit matrix
-            unitmat(U_re_snap,N_site_si);
-            clearvec(U_im_snap,N_site_si*N_site_si);  
+                 
             
             printf("Starting the t2 interval preparation");
             /* Loop over the needed t2 interval, this naturally has overlap with the snapshots of tw. propagate this one forward in time */
             /* For the t2 interval, store the individual snapshots, rather than the compounded propagators */
             /* The actual propagation (combination of specific snapshot propagators) will be done in the 3d time loop */
+            /* First snapshot properly stored (no unit matrix here as starting point here, but in triple time loop instead)*/
             for (ti=0;ti<times_N2;ti++){
                 tj = t_ref+N_t1 + ti +1; //+1 to ensure the +0 snapshot belongs to the t1 interval
-                write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
-                write_propagator_to_big_array(big_propagator_array_t2_im,U_im_snap,times_N2,si,N_site_si, N_site_max, ti);
                 /* Read Hamiltonian */
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
                 // isolate the segment i with projection routine to obtain smaller matrix
-                // printf("N_i= %d\n",N_i);
                 isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_site_si, non);
-                        // Propagate segment i (~N_i^3 process)
-                        // propagate after writing to big array, such that first propagator is identity
-                        // calculate the propagators of the individual snapshots, rather than calculating their product
+                // calculate the propagators of the individual snapshots, rather than calculating their product
                 time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_site_si);
+                write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
+                write_propagator_to_big_array(big_propagator_array_t2_im,U_im_snap,times_N2,si,N_site_si, N_site_max, ti);
             }//closing the prerun over t2
 
             free(U_re);
@@ -3086,7 +3081,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 printf("############################# Segments %d, %d   #####################################\n", p.s_D, p.s_A);
                 fourth_order_response_1_sample(&p);
 
-                // copy the diagrams at the after the 3d time loop (such that the final waiting time is shown)
+                // copy the diagrams at the after the 3d time loop (such that the final waiting time 2 D response is shown)
                 if (sj == 1 || si ==0){
                     add_diagrams(diagram_1, diagram_2, diagram_3, diagram_4, diagram_1_s01, diagram_2_s01, diagram_3_s01, diagram_4_s01, N_t1, N_t2);
                 }
