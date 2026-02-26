@@ -2366,24 +2366,24 @@ void compute_4_intermediate_products(fourth_order_workspace *ws, fourth_order_pa
     intermediate_DA_im = (float *)calloc(N_A*N_D,sizeof(float));
 
     for (t1=0;t1<N_t1;t1++){
-	factor_1_re = UDh_rho_J_UA_re_t1 + N_A*N_D * t1;
-	factor_1_im = UDh_rho_J_UA_im_t1 + N_A*N_D * t1;
+	    factor_1_re = UDh_rho_J_UA_re_t1 + N_A*N_D * t1;
+	    factor_1_im = UDh_rho_J_UA_im_t1 + N_A*N_D * t1;
         // product 1
-	// Ui @ Jh_UDh_tw = intermediate_product_DD
+	    // Ui @ Jh_UDh_tw = intermediate_product_DD
         complex_matrix_product(factor_1_re, factor_1_im, Jh_UDh_tw_re, Jh_UDh_tw_im, intermediate_DD_re, intermediate_DD_im, N_D,N_D,N_A);
         complex_matrix_product(intermediate_DD_re, intermediate_DD_im, J, J_zeros, intermediate_DA_re, intermediate_DA_im, N_D,N_A,N_D);
         complex_matrix_product(UD_tw_re, UD_tw_im, intermediate_DA_re, intermediate_DA_im, intermediate_product_1_re+t1*N_D*N_A, intermediate_product_1_im+t1*N_D*N_A,N_D,N_A,N_D);
         // product 2 
-	complex_matrix_product(Jh_UD_tw_re, Jh_UD_tw_im, intermediate_DD_re, intermediate_DD_im, intermediate_product_2_re+t1*N_A*N_D, intermediate_product_2_im+t1*N_A*N_D,N_A,N_D,N_D);
+	    complex_matrix_product(Jh_UD_tw_re, Jh_UD_tw_im, intermediate_DD_re, intermediate_DD_im, intermediate_product_2_re+t1*N_A*N_D, intermediate_product_2_im+t1*N_A*N_D,N_A,N_D,N_D);
         // product 3
-	// reuse the intermediate_DD slot here
+	    // reuse the intermediate_DD slot here
         complex_matrix_product(factor_1_re, factor_1_im, UAh_Jh_tw_re, UAh_Jh_tw_im, intermediate_DD_re, intermediate_DD_im, N_D,N_D,N_A);
         complex_matrix_product(UA_Jh_tw_re, UA_Jh_tw_im, intermediate_DD_re, intermediate_DD_im, intermediate_product_3_re+t1*N_A*N_D, intermediate_product_3_im+t1*N_A*N_D, N_A,N_D,N_D);	
         // product 4
-	factor_2_re = UAh_Jh_rho_UD_re_t1 + N_A * N_D * t1;
-	factor_2_im = UAh_Jh_rho_UD_im_t1 + N_A * N_D * t1;
-	complex_matrix_product(factor_2_re, factor_2_im, J_UAh_Jh_tw_re, J_UAh_Jh_tw_im, intermediate_AD_re, intermediate_AD_im,N_A,N_D,N_D);
-	complex_matrix_product(UA_tw_re, UA_tw_im, intermediate_AD_re, intermediate_AD_im,intermediate_product_4_re + t1*N_A*N_D, intermediate_product_4_im + t1*N_A*N_D, N_A,N_D,N_A);
+        factor_2_re = UAh_Jh_rho_UD_re_t1 + N_A * N_D * t1;
+        factor_2_im = UAh_Jh_rho_UD_im_t1 + N_A * N_D * t1;
+        complex_matrix_product(factor_2_re, factor_2_im, J_UAh_Jh_tw_re, J_UAh_Jh_tw_im, intermediate_AD_re, intermediate_AD_im,N_A,N_D,N_D);
+        complex_matrix_product(UA_tw_re, UA_tw_im, intermediate_AD_re, intermediate_AD_im,intermediate_product_4_re + t1*N_A*N_D, intermediate_product_4_im + t1*N_A*N_D, N_A,N_D,N_A);
     }
     // free(factor_1_re);
     // free(factor_1_im);
@@ -2411,9 +2411,8 @@ void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_
             if (si != sj){	
                 plateau_I = -1e-6 * rate_matrix_2nd[si+N_segments*sj] * (rate_matrix_2nd[si+N_segments*sj] + rate_matrix_2nd[sj+N_segments*si]);
                 plateau_II = responses_4th_tw[N_segments * N_segments * (N_tw - 1) + si * N_segments + sj] * prefactor / samples;
-		printf("Plateaus: %e, %e\n", plateau_I, plateau_II);
                 for (tw=0;tw<N_tw;tw++){
-		    weight = 1;
+		            weight = 1;
                     response = responses_4th_tw[N_segments * N_segments * tw + si * N_segments + sj] * prefactor / samples;
                     if (tw == 0){
                         weight =  0.5;
@@ -2559,91 +2558,91 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     // the actual three fold integral
     for (tw=0;tw<N_tw;tw++){
         // read the propagator at this waiting time
-	read_propagator_from_big_array(U_re_tw_array, UA_tw_re, N_tw, s_A, N_A, largest_segment_size, tw);
-    read_propagator_from_big_array(U_im_tw_array, UA_tw_im, N_tw, s_A, N_A, largest_segment_size, tw);
-	read_propagator_from_big_array(U_re_tw_array, UD_tw_re, N_tw, s_D, N_D, largest_segment_size, tw);
-	read_propagator_from_big_array(U_im_tw_array, UD_tw_im, N_tw, s_D, N_D, largest_segment_size, tw);
+        read_propagator_from_big_array(U_re_tw_array, UA_tw_re, N_tw, s_A, N_A, largest_segment_size, tw);
+        read_propagator_from_big_array(U_im_tw_array, UA_tw_im, N_tw, s_A, N_A, largest_segment_size, tw);
+        read_propagator_from_big_array(U_re_tw_array, UD_tw_re, N_tw, s_D, N_D, largest_segment_size, tw);
+        read_propagator_from_big_array(U_im_tw_array, UD_tw_im, N_tw, s_D, N_D, largest_segment_size, tw);
 
-	hermitian_conjugate(UA_tw_re, UA_tw_im, UA_tw_h_re, UA_tw_h_im, N_A, N_A);
-    hermitian_conjugate(UD_tw_re, UD_tw_im, UD_tw_h_re, UD_tw_h_im, N_D, N_D);
+        hermitian_conjugate(UA_tw_re, UA_tw_im, UA_tw_h_re, UA_tw_h_im, N_A, N_A);
+        hermitian_conjugate(UD_tw_re, UD_tw_im, UD_tw_h_re, UD_tw_h_im, N_D, N_D);
 
-       	// Jh_UDh_tw = J.T @ UD_tw_h
-	complex_matrix_product(JT, J_zeros, UD_tw_h_re,UD_tw_h_im,Jh_UDh_tw_re,Jh_UDh_tw_im,N_A,N_D,N_D);	
+        // Jh_UDh_tw = J.T @ UD_tw_h
+        complex_matrix_product(JT, J_zeros, UD_tw_h_re,UD_tw_h_im,Jh_UDh_tw_re,Jh_UDh_tw_im,N_A,N_D,N_D);	
         // Jh_UD_tw =  J.T @ UD_tw
-	complex_matrix_product(JT, J_zeros, UD_tw_re,UD_tw_im,Jh_UD_tw_re,Jh_UD_tw_im,N_A,N_D,N_D);	
+        complex_matrix_product(JT, J_zeros, UD_tw_re,UD_tw_im,Jh_UD_tw_re,Jh_UD_tw_im,N_A,N_D,N_D);	
         // UAh_Jh_tw = UA_tw_h @ J.T
-	complex_matrix_product(UA_tw_h_re, UA_tw_h_im, JT, J_zeros, UAh_Jh_tw_re, UAh_Jh_tw_im,N_A,N_D,N_A);
-	// J_UAh_Jh_tw = J @ UAh_Jh_tw
-	complex_matrix_product(J, J_zeros, UAh_Jh_tw_re, UAh_Jh_tw_im, J_UAh_Jh_tw_re, J_UAh_Jh_tw_im,N_D,N_D,N_A);
-	// UA_Jh_tw = UA_tw @ J.T
-    complex_matrix_product(UA_tw_re, UA_tw_im, JT, J_zeros, UA_Jh_tw_re, UA_Jh_tw_im, N_A, N_D, N_A);
+        complex_matrix_product(UA_tw_h_re, UA_tw_h_im, JT, J_zeros, UAh_Jh_tw_re, UAh_Jh_tw_im,N_A,N_D,N_A);
+        // J_UAh_Jh_tw = J @ UAh_Jh_tw
+        complex_matrix_product(J, J_zeros, UAh_Jh_tw_re, UAh_Jh_tw_im, J_UAh_Jh_tw_re, J_UAh_Jh_tw_im,N_D,N_D,N_A);
+        // UA_Jh_tw = UA_tw @ J.T
+        complex_matrix_product(UA_tw_re, UA_tw_im, JT, J_zeros, UA_Jh_tw_re, UA_Jh_tw_im, N_A, N_D, N_A);
 
-	// clear the four intermediate product arrays
-    clearvec(intermediate_product_1_re, N_D*N_A*N_t1);
-    clearvec(intermediate_product_1_im, N_D*N_A*N_t1);
-    clearvec(intermediate_product_2_re, N_D*N_A*N_t1);
-    clearvec(intermediate_product_2_im, N_D*N_A*N_t1);
-    clearvec(intermediate_product_3_re, N_D*N_A*N_t1);
-    clearvec(intermediate_product_3_im, N_D*N_A*N_t1);
-    clearvec(intermediate_product_4_re, N_D*N_A*N_t1);
-    clearvec(intermediate_product_4_im, N_D*N_A*N_t1);
+        // clear the four intermediate product arrays
+        clearvec(intermediate_product_1_re, N_D*N_A*N_t1);
+        clearvec(intermediate_product_1_im, N_D*N_A*N_t1);
+        clearvec(intermediate_product_2_re, N_D*N_A*N_t1);
+        clearvec(intermediate_product_2_im, N_D*N_A*N_t1);
+        clearvec(intermediate_product_3_re, N_D*N_A*N_t1);
+        clearvec(intermediate_product_3_im, N_D*N_A*N_t1);
+        clearvec(intermediate_product_4_re, N_D*N_A*N_t1);
+        clearvec(intermediate_product_4_im, N_D*N_A*N_t1);
 
-	// calculate the intermediate products for this specific tw for all matrices for each t1
+        // calculate the intermediate products for this specific tw for all matrices at each t1
         // this saves matrix multiplications in the most nested loop.
 
         // store the many input matrices/trajectories in a structure
-	fourth_order_workspace ws;
+        fourth_order_workspace ws;
 
-	// outputs
-	ws.intermediate_product_1_re = intermediate_product_1_re;
-	ws.intermediate_product_1_im = intermediate_product_1_im;
-	ws.intermediate_product_2_re = intermediate_product_2_re;
-	ws.intermediate_product_2_im = intermediate_product_2_im;
-	ws.intermediate_product_3_re = intermediate_product_3_re;
-	ws.intermediate_product_3_im = intermediate_product_3_im;
-	ws.intermediate_product_4_re = intermediate_product_4_re;
-	ws.intermediate_product_4_im = intermediate_product_4_im;
+        // outputs
+        ws.intermediate_product_1_re = intermediate_product_1_re;
+        ws.intermediate_product_1_im = intermediate_product_1_im;
+        ws.intermediate_product_2_re = intermediate_product_2_re;
+        ws.intermediate_product_2_im = intermediate_product_2_im;
+        ws.intermediate_product_3_re = intermediate_product_3_re;
+        ws.intermediate_product_3_im = intermediate_product_3_im;
+        ws.intermediate_product_4_re = intermediate_product_4_re;
+        ws.intermediate_product_4_im = intermediate_product_4_im;
 
-	// inputs (t1 fase)
-	ws.UDh_rho_J_UA_re_t1  = UDh_rho_J_UA_re_t1;
-	ws.UDh_rho_J_UA_im_t1  = UDh_rho_J_UA_im_t1;
-	ws.UAh_Jh_rho_UD_re_t1 = UAh_Jh_rho_UD_re_t1;
-	ws.UAh_Jh_rho_UD_im_t1 = UAh_Jh_rho_UD_im_t1;
+        // inputs (t1 fase)
+        ws.UDh_rho_J_UA_re_t1  = UDh_rho_J_UA_re_t1;
+        ws.UDh_rho_J_UA_im_t1  = UDh_rho_J_UA_im_t1;
+        ws.UAh_Jh_rho_UD_re_t1 = UAh_Jh_rho_UD_re_t1;
+        ws.UAh_Jh_rho_UD_im_t1 = UAh_Jh_rho_UD_im_t1;
 
-	// inputs (tw fase)
-	ws.Jh_UDh_tw_re   = Jh_UDh_tw_re;
-	ws.Jh_UDh_tw_im   = Jh_UDh_tw_im;
-	ws.Jh_UD_tw_re    = Jh_UD_tw_re;
-	ws.Jh_UD_tw_im    = Jh_UD_tw_im;
-	ws.UD_tw_re       = UD_tw_re;
-	ws.UD_tw_im       = UD_tw_im;
-	ws.UA_Jh_tw_re    = UA_Jh_tw_re;
-	ws.UA_Jh_tw_im    = UA_Jh_tw_im;
-	ws.UAh_Jh_tw_re   = UAh_Jh_tw_re;
-	ws.UAh_Jh_tw_im   = UAh_Jh_tw_im;
-	ws.J_UAh_Jh_tw_re = J_UAh_Jh_tw_re;
-	ws.J_UAh_Jh_tw_im = J_UAh_Jh_tw_im;
-	ws.UA_tw_re       = UA_tw_re;
-	ws.UA_tw_im       = UA_tw_im;
-        
-	// constant
-	ws.J_zeros = J_zeros;
+        // inputs (tw fase)
+        ws.Jh_UDh_tw_re   = Jh_UDh_tw_re;
+        ws.Jh_UDh_tw_im   = Jh_UDh_tw_im;
+        ws.Jh_UD_tw_re    = Jh_UD_tw_re;
+        ws.Jh_UD_tw_im    = Jh_UD_tw_im;
+        ws.UD_tw_re       = UD_tw_re;
+        ws.UD_tw_im       = UD_tw_im;
+        ws.UA_Jh_tw_re    = UA_Jh_tw_re;
+        ws.UA_Jh_tw_im    = UA_Jh_tw_im;
+        ws.UAh_Jh_tw_re   = UAh_Jh_tw_re;
+        ws.UAh_Jh_tw_im   = UAh_Jh_tw_im;
+        ws.J_UAh_Jh_tw_re = J_UAh_Jh_tw_re;
+        ws.J_UAh_Jh_tw_im = J_UAh_Jh_tw_im;
+        ws.UA_tw_re       = UA_tw_re;
+        ws.UA_tw_im       = UA_tw_im;
+            
+        // constant
+        ws.J_zeros = J_zeros;
 
-	compute_4_intermediate_products(&ws, p);
+        compute_4_intermediate_products(&ws, p);
 
-    // initialize the acceptor propagator over t2 as a unit matrix
-    unitmat(UA_comp_t2_re,N_A);
-    clearvec(UA_comp_t2_im,N_A*N_A);
-    unitmat(UD_comp_t2_re,N_D);
-    clearvec(UD_comp_t2_im,N_D*N_D);
+        // initialize the acceptor propagator over t2 as a unit matrix
+        unitmat(UA_comp_t2_re,N_A);
+        clearvec(UA_comp_t2_im,N_A*N_A);
+        unitmat(UD_comp_t2_re,N_D);
+        clearvec(UD_comp_t2_im,N_D*N_D);
 
-    // clear the diagram for each waiting time
-    clearvec(diagram_1, N_t1*N_t2);
-    clearvec(diagram_2, N_t1*N_t2);
-    clearvec(diagram_3, N_t1*N_t2);
-    clearvec(diagram_4, N_t1*N_t2);
+        // clear the diagram for each waiting time
+        clearvec(diagram_1, N_t1*N_t2);
+        clearvec(diagram_2, N_t1*N_t2);
+        clearvec(diagram_3, N_t1*N_t2);
+        clearvec(diagram_4, N_t1*N_t2);
 
-	for(t2=0;t2<N_t2;t2++){
+	    for(t2=0;t2<N_t2;t2++){
             //compute the hermitian conjugate of the acceptor t2 propagator
             hermitian_conjugate(UA_comp_t2_re, UA_comp_t2_im, UA_comp_h_t2_re, UA_comp_h_t2_im, N_A, N_A);
 	        // printf("N_A UA_comp_t2_re, UA_comp_t2_im: %d %f, %f\n",N_A, matrix_sum(UA_comp_t2_re, N_A), matrix_sum(UA_comp_t2_im, 9));
@@ -2694,8 +2693,6 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
                 // printf("diagram3: %f\n",matrix_sum(diagram_3, N_t1));
                 // printf("diagram4: %f\n",matrix_sum(diagram_4, N_t1));
 
-
-                
             }//close the loop over t1
 
 	        // U_A_comp_t2 represents U_A(tw+t2,tw)
@@ -2718,9 +2715,9 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
             propagate_snapshot(UA_snap_t2_re, UA_snap_t2_im, UA_comp_t2_re, UA_comp_t2_im,N_A);
             propagate_snapshot(UD_snap_t2_re, UD_snap_t2_im, UD_comp_t2_re, UD_comp_t2_im,N_D);
         }// close the loop over t2
-    // integrate over the two coherence intervals
-    // this actually assumes that N_t1 and N_t2 are equal
     
+    // integrate over the two coherence intervals
+    // this divisoin actually assumes that N_t1 and N_t2 are equal
     // this should be turned on for better integration (turned off for intermediate testing)
     for (t1 = 0; t1< N_t1;t1++){
         diagram_1[t1+0] /= 2; // first row/column
@@ -2901,7 +2898,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     big_propagator_array_t2_re = (float *)calloc(N_dim_big_array_t2,sizeof(float));
     big_propagator_array_t2_im = (float *)calloc(N_dim_big_array_t2,sizeof(float));
 
-    //
+    // initialise the diagram arrays, to be used for each segment combination at each sample
     float *diagram_1, *diagram_2, *diagram_3, *diagram_4;
     diagram_1 = (float *)calloc(N_t1*N_t2,sizeof(float));
     diagram_2 = (float *)calloc(N_t1*N_t2,sizeof(float));
@@ -2937,7 +2934,10 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
         clearvec(big_propagator_array_tw_im,N_dim_big_array_tw);
 
         // single loop over segments to precalculate the propagator 
-        printf("Starting the single loop over the segments.\n");
+        log=fopen("NISE.log","a");
+        fprintf(log,"Starting the computation of the propagators in sample %d\n", samples);
+        time_now=log_time(time_now,log);
+        fclose(log);
         for (si=0;si<N_segments;si++){
             N_site_si = find_H_indices_segment(non->psites, H_indices_si, si, non);
             /* The segment si hamiltonian in upper triangle format */
@@ -2955,7 +2955,10 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             unitmat(U_re,N_site_si);
             clearvec(U_im,N_site_si*N_site_si);
 
-            printf("Starting the t1 interval preparation");
+            log=fopen("NISE.log","a");
+            fprintf(log,"Starting the computation of the t1 propagators of seg %d, in sample %d\n", si, samples);
+            time_now=log_time(time_now,log);
+            fclose(log);
             /* Loop over the needed t1 interval. propagate this one backward in time */
             for (ti=0;ti<N_t1;ti++){
                         tj = t_ref + N_t1 - ti;
@@ -2976,8 +2979,12 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 
             // initialize the n_i * n_i propagator as a unit matrix
             unitmat(U_re,N_site_si);
-            clearvec(U_im,N_site_si*N_site_si); 
-            printf("Starting the tw interval preparation");
+            clearvec(U_im,N_site_si*N_site_si);
+
+            log=fopen("NISE.log","a");
+            fprintf(log,"Starting the computation of the tw propagators of seg %d, in sample %d\n", si, samples);
+            time_now=log_time(time_now,log);
+            fclose(log);
             /* Loop over the needed tw interval. propagate this one forward in time */
             for (ti=0;ti<N_tw;ti++){
                 tj = t_ref+N_t1 + ti + 1; //+1 to ensure the +0 snapshot belongs to the t1 interval
@@ -2995,7 +3002,10 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             }//closing the prerun over tw
                  
             
-            printf("Starting the t2 interval preparation");
+            log=fopen("NISE.log","a");
+            fprintf(log,"Starting the computation of the t2 propagators of seg %d, in sample %d\n", si, samples);
+            time_now=log_time(time_now,log);
+            fclose(log);
             /* Loop over the needed t2 interval, this naturally has overlap with the snapshots of tw. propagate this one forward in time */
             /* For the t2 interval, store the individual snapshots, rather than the compounded propagators */
             /* The actual propagation (combination of specific snapshot propagators) will be done in the 3d time loop */
@@ -3022,13 +3032,10 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
 
         }//closing the single loop over segments
 
-        /* Update NISE log file */
         log=fopen("NISE.log","a");
-        fprintf(log,"Finished preparing the propagators matrices for all segments in sample %d\n", samples);
+        fprintf(log,"Starting the double loop over the segments, in sample %d\n", samples);
         time_now=log_time(time_now,log);
         fclose(log);
-
-        printf("Starting the double loop over the segments.\n");
         // double loop over segments to compute fourth order in each direction
         for (si=0;si<N_segments;si++){
             // si is the donor segment in this loop
@@ -3041,56 +3048,61 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             // nested segment loop
             for (sj=0;sj<N_segments;sj++){
                 if (si != sj){
-                        // sj is the acceptor segment in this loop
-                N_site_sj = find_H_indices_segment(non->psites, H_indices_sj, sj, non);
+                    // sj is the acceptor segment in this loop
+                    N_site_sj = find_H_indices_segment(non->psites, H_indices_sj, sj, non);
                     // define matrix J_ij left hand side index i, right hand side index j
-                        // retrieve the appropriate inter-segment J block for segments i and j
-                float *Jij;
-                        Jij = (float *)calloc(N_site_si*N_site_sj,sizeof(float));
-                        isolate_coupling_block(J_full, Jij, N_site_si, N_site_sj, H_indices_si, H_indices_sj, non);	    
-                        // compute R4 for 1 sample of the propagators
+                    // retrieve the appropriate inter-segment J block for segments i and j
+                    float *Jij;
+                    Jij = (float *)calloc(N_site_si*N_site_sj,sizeof(float));
+                    isolate_coupling_block(J_full, Jij, N_site_si, N_site_sj, H_indices_si, H_indices_sj, non);	    
+                    // compute R4 for 1 sample of the propagators
 
-                fourth_order_params p;
-                // fill the new struct
-                p.rho0_D = rho_0_si;
-                p.J = Jij;
-                p.integrated_response_tw = responses_4th_tw;
-                p.U_re_t1_array = big_propagator_array_t1_re;
-                p.U_im_t1_array = big_propagator_array_t1_im;
-                p.U_re_tw_array = big_propagator_array_tw_re;
-                p.U_im_tw_array = big_propagator_array_tw_im;
-                p.U_re_t2_array = big_propagator_array_t2_re;
-                p.U_im_t2_array = big_propagator_array_t2_im;
+                    fourth_order_params p;
+                    // fill the new struct
+                    p.rho0_D = rho_0_si;
+                    p.J = Jij;
+                    p.integrated_response_tw = responses_4th_tw;
+                    p.U_re_t1_array = big_propagator_array_t1_re;
+                    p.U_im_t1_array = big_propagator_array_t1_im;
+                    p.U_re_tw_array = big_propagator_array_tw_re;
+                    p.U_im_tw_array = big_propagator_array_tw_im;
+                    p.U_re_t2_array = big_propagator_array_t2_re;
+                    p.U_im_t2_array = big_propagator_array_t2_im;
 
-                p.diagram_1 = diagram_1;
-                p.diagram_2 = diagram_2;
-                p.diagram_3 = diagram_3;
-                p.diagram_4 = diagram_4;
+                    p.diagram_1 = diagram_1;
+                    p.diagram_2 = diagram_2;
+                    p.diagram_3 = diagram_3;
+                    p.diagram_4 = diagram_4;
 
-                p.N_A = N_site_sj;
-                p.N_D = N_site_si;
-                p.N_t1 = N_t1;
-                p.N_tw = N_tw;
-                p.N_t2 = N_t2;
-                p.times_N2 = times_N2;
-                p.s_D = si;
-                p.s_A = sj;
-                p.N_segments = N_segments;
-                p.largest_segment_size = N_site_max;
-                p.non = non;
-                printf("############################# Segments %d, %d   #####################################\n", p.s_D, p.s_A);
-                fourth_order_response_1_sample(&p);
+                    p.N_A = N_site_sj;
+                    p.N_D = N_site_si;
+                    p.N_t1 = N_t1;
+                    p.N_tw = N_tw;
+                    p.N_t2 = N_t2;
+                    p.times_N2 = times_N2;
+                    p.s_D = si;
+                    p.s_A = sj;
+                    p.N_segments = N_segments;
+                    p.largest_segment_size = N_site_max;
+                    p.non = non;
 
-                // copy the diagrams at the after the 3d time loop (such that the final waiting time 2 D response is shown)
-                if (sj == 1 || si ==0){
-                    add_diagrams(diagram_1, diagram_2, diagram_3, diagram_4, diagram_1_s01, diagram_2_s01, diagram_3_s01, diagram_4_s01, N_t1, N_t2);
+                    log=fopen("NISE.log","a");
+                    fprintf(log,"Computing rate between segments %d and %d, in sample %d\n", si, sj, samples);
+                    time_now=log_time(time_now,log);
+                    fclose(log);
+
+                    fourth_order_response_1_sample(&p);
+
+                    // copy the diagrams at the after the 3d time loop (such that the final waiting time 2 D response is shown)
+                    if (sj == 1 || si ==0){
+                        add_diagrams(diagram_1, diagram_2, diagram_3, diagram_4, diagram_1_s01, diagram_2_s01, diagram_3_s01, diagram_4_s01, N_t1, N_t2);
+                    }
+
+                    free(Jij);
                 }
-
-                free(Jij);
-            }
-        } // closing the nested segment loop
-	    free(rho_0_si);
-	}//closing the double loop over the segments
+            } // closing the nested segment loop
+            free(rho_0_si);
+        }//closing the double loop over the segments
 
     /* Update NISE log file */
     log=fopen("NISE.log","a");
@@ -3120,11 +3132,11 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     responses_4th_file = fopen("Responses_4th.dat","w");
     fprintf(responses_4th_file,"The response function between segments si * N_segments + sj, where si is the donor segment. First column gives waiting time in fs.\n");
     for (tw=0;tw<N_tw;tw++){
-	fprintf(responses_4th_file,"%f ",tw*non->deltat);
-    	for (column=0;column<N_column;column++){
-            fprintf(responses_4th_file,"%e ", prefactor * responses_4th_tw[column + tw * N_column] / samples);
-	}
-	fprintf(responses_4th_file,"\n");
+        fprintf(responses_4th_file,"%f ",tw*non->deltat);
+            for (column=0;column<N_column;column++){
+                fprintf(responses_4th_file,"%e ", prefactor * responses_4th_tw[column + tw * N_column] / samples);
+            }
+        fprintf(responses_4th_file,"\n");
     }
     fclose(responses_4th_file);
 
@@ -3139,7 +3151,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             }
             fprintf(diagram_file,"\n");
         }
-        fclose(diagram_file); 
+        fclose(diagram_file);
     }
 
     //cleanup
