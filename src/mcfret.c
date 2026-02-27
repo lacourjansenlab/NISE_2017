@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include <cblas.h>
 #include "omp.h"
 #include "types.h"
 #include "NISE_subs.h"
@@ -2171,43 +2172,104 @@ void read_propagator_from_big_array(float *big_array, float *propagator, int sam
     return;
 }
 
-void propagate_snapshot(float *U_snap_re, float *U_snap_im, float *U_comp_re, float *U_comp_im, int N){
+void propagate_snapshot(float *U_snap_re, float *U_snap_im, float **U_comp_re, float **U_comp_im, float **temp_re, float **temp_im, int N){
     // multiply the propagator with the next snapshot
     // requires precalculated snapshots
     // overwrites the original propagator
     int i,j;
-    float *temp_re = (float *)calloc(N*N,sizeof(float));
-    float *temp_im = (float *)calloc(N*N,sizeof(float));
-    complex_matrix_product(U_snap_re, U_snap_im, U_comp_re, U_comp_im, temp_re, temp_im, N,N,N);
-    for (i=0;i<N;i++){
-        for (j=0;j<N;j++){
-            U_comp_re[i*N+j] = temp_re[i*N+j];
-            U_comp_im[i*N+j] = temp_im[i*N+j];
-	}
-    } 
-    free(temp_re);
-    free(temp_im);
+    complex_matrix_product(U_snap_re, U_snap_im, *U_comp_re, *U_comp_im, *temp_re, *temp_im, N,N,N);
+
+    // swap pointers of the temp and comp matrices
+    // this ensures proper pointing to the updated propagator after each iteration
+    float *tmp;
+    tmp = *U_comp_re; *U_comp_re = *temp_re; *temp_re = tmp;
+    tmp = *U_comp_im; *U_comp_im = *temp_im; *temp_im = tmp;
 }
 
-void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, float *C_re, float *C_im,int N_1,int N_2,int N_3){
+// void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, float *C_re, float *C_im,int N_1,int N_2,int N_3){
 
-    int i1, i2, i3;
-    float Aim_i1i3, Are_i1i3;
-    clearvec(C_re,N_1*N_2);
-    clearvec(C_im,N_1*N_2);
+//     int i1, i2, i3;
+//     float Aim_i1i3, Are_i1i3;
+//     clearvec(C_re,N_1*N_2);
+//     clearvec(C_im,N_1*N_2);
 
-// can make paralllel but check for loop order: warnings recieved
-#pragma omp parallel for private(i2,i3,Aim_i1i3,Are_i1i3)
-for (i1=0;i1<N_1;i1++){
-    for (i3=0;i3<N_3;i3++){
-	    Aim_i1i3 = A_im[i1*N_3+i3];
-	    Are_i1i3 = A_re[i1*N_3+i3];
-            for (i2=0;i2<N_2;i2++){
-                    C_re[i1*N_2+i2] += Are_i1i3 * B_re[i3*N_2+i2] - Aim_i1i3 * B_im[i3*N_2+i2];
-                    C_im[i1*N_2+i2] += Are_i1i3 * B_im[i3*N_2+i2] + Aim_i1i3 * B_re[i3*N_2+i2];
-                }
-            }
-        }
+// // can make paralllel but check for loop order: warnings recieved
+// #pragma omp parallel for private(i2,i3,Aim_i1i3,Are_i1i3)
+// for (i1=0;i1<N_1;i1++){
+//     for (i3=0;i3<N_3;i3++){
+// 	    Aim_i1i3 = A_im[i1*N_3+i3];
+// 	    Are_i1i3 = A_re[i1*N_3+i3];
+//             for (i2=0;i2<N_2;i2++){
+//                     C_re[i1*N_2+i2] += Are_i1i3 * B_re[i3*N_2+i2] - Aim_i1i3 * B_im[i3*N_2+i2];
+//                     C_im[i1*N_2+i2] += Are_i1i3 * B_im[i3*N_2+i2] + Aim_i1i3 * B_re[i3*N_2+i2];
+//                 }
+//             }
+//         }
+// }
+
+
+void complex_matrix_product(float *A_re, float *A_im,
+                            float *B_re, float *B_im,
+                            float *C_re, float *C_im,
+                            int N_1, int N_2, int N_3)
+{
+    // Row-major matrices:
+    // A: N_1 x N_3
+    // B: N_3 x N_2
+    // C: N_1 x N_2
+
+    const int sizeA = N_1 * N_3;
+    const int sizeB = N_3 * N_2;
+    const int sizeC = N_1 * N_2;
+
+    // Allocate interleaved complex buffers
+    float *A = (float*) malloc(sizeof(float) * 2 * sizeA);
+    float *B = (float*) malloc(sizeof(float) * 2 * sizeB);
+    float *C = (float*) malloc(sizeof(float) * 2 * sizeC);
+
+    if (!A || !B || !C) {
+        free(A);
+        free(B);
+        free(C);
+        return; // allocation failed
+    }
+
+    // Convert A to interleaved complex
+    for (int i = 0; i < sizeA; i++) {
+        A[2*i]     = A_re[i];
+        A[2*i + 1] = A_im[i];
+    }
+
+    // Convert B
+    for (int i = 0; i < sizeB; i++) {
+        B[2*i]     = B_re[i];
+        B[2*i + 1] = B_im[i];
+    }
+
+    // Zero C
+    memset(C, 0, sizeof(float) * 2 * sizeC);
+
+    const float alpha[2] = {1.0f, 0.0f};
+    const float beta[2]  = {0.0f, 0.0f};
+
+    cblas_cgemm(CblasRowMajor,
+                CblasNoTrans, CblasNoTrans,
+                N_1, N_2, N_3,
+                alpha,
+                A, N_3,
+                B, N_2,
+                beta,
+                C, N_2);
+
+    // Convert result back to split format
+    for (int i = 0; i < sizeC; i++) {
+        C_re[i] = C[2*i];
+        C_im[i] = C[2*i + 1];
+    }
+
+    free(A);
+    free(B);
+    free(C);
 }
 
 void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1, 
@@ -2555,6 +2617,13 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     temp_re = (float *)calloc(N_D*N_A,sizeof(float));
     temp_im = (float *)calloc(N_D*N_A,sizeof(float));
 
+    float *work_re_A, *work_im_A;
+    float *work_re_D, *work_im_D;
+    work_re_A = (float *)calloc(N_A*N_A,sizeof(float));
+    work_im_A = (float *)calloc(N_A*N_A,sizeof(float));
+    work_re_D = (float *)calloc(N_D*N_D,sizeof(float));
+    work_im_D = (float *)calloc(N_D*N_D,sizeof(float));
+
     // the actual three fold integral
     for (tw=0;tw<N_tw;tw++){
         // read the propagator at this waiting time
@@ -2712,8 +2781,8 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
 	        read_propagator_from_big_array(U_re_t2_array, UD_snap_t2_re, times_N2, s_D, N_D, largest_segment_size, tw + t2);
             read_propagator_from_big_array(U_im_t2_array, UD_snap_t2_im, times_N2, s_D, N_D, largest_segment_size, tw + t2);
             // propagate t2
-            propagate_snapshot(UA_snap_t2_re, UA_snap_t2_im, UA_comp_t2_re, UA_comp_t2_im,N_A);
-            propagate_snapshot(UD_snap_t2_re, UD_snap_t2_im, UD_comp_t2_re, UD_comp_t2_im,N_D);
+            propagate_snapshot(UA_snap_t2_re, UA_snap_t2_im, &UA_comp_t2_re, &UA_comp_t2_im, &work_re_A, &work_im_A, N_A);
+            propagate_snapshot(UD_snap_t2_re, UD_snap_t2_im, &UD_comp_t2_re, &UD_comp_t2_im, &work_re_D, &work_im_D, N_D);
         }// close the loop over t2
     
     // integrate over the two coherence intervals
@@ -2794,6 +2863,11 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     free(Jh_UD_tw_im);
     free(Jh_UDh_tw_re);
     free(Jh_UDh_tw_im);
+
+    free(work_re_A);
+    free(work_im_A);
+    free(work_re_D);
+    free(work_im_D);
 }
 
 /* The routine to compute the full 4th order TD-MCFRET rate matrix */
@@ -2951,6 +3025,10 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             U_re_snap =(float *)calloc(N_site_si*N_site_si,sizeof(float));
             U_im_snap =(float *)calloc(N_site_si*N_site_si,sizeof(float));
 
+            float *work_re_si, *work_im_si;
+            work_re_si =(float *)calloc(N_site_si*N_site_si,sizeof(float));
+            work_im_si =(float *)calloc(N_site_si*N_site_si,sizeof(float));
+
             // initialize the n_i * n_i propagator as a unit matrix
             unitmat(U_re,N_site_si);
             clearvec(U_im,N_site_si*N_site_si);
@@ -2974,7 +3052,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                         // propagate after writing to big array, such that first propagator is identity
                 //        propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_site_si);
                 time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_site_si);
-                propagate_snapshot(U_re_snap, U_im_snap, U_re, U_im, N_site_si);
+                propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_site_si);
             }//closing the prerun over t1
                 
             // initialize the n_i * n_i propagator as a unit matrix
@@ -2997,7 +3075,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 // Propagate segment i (~N_i^3 process)
                 // propagate after writing to big array, such that first propagator is identity
                 time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_site_si);
-                propagate_snapshot(U_re_snap, U_im_snap, U_re, U_im, N_site_si);
+                propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_site_si);
 
             }//closing the prerun over tw
                  
@@ -3029,6 +3107,8 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             free(U_h_re);
             free(U_h_im);
             free(Hamiltonian_segment_triu);
+            free(work_re_si);
+            free(work_im_si);
 
         }//closing the single loop over segments
 

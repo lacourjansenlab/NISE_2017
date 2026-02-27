@@ -96,7 +96,7 @@ void mcfret_rate_from_abs(float *rate_matrix,float *coherence_matrix,int segment
 
 void write_propagator_to_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti);
 void read_propagator_from_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti);
-void propagate_snapshot(float *U_snap_re, float *U_snap_im, float *U_comp_re, float *U_comp_im, int N);
+void propagate_snapshot(float *U_snap_re, float *U_snap_im, float **U_comp_re, float **U_comp_im, float **temp_re, float **temp_im, int N);
 void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, float *C_re, float *C_im,int N1,int N2,int N3);
 void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1,
                              float *UDh_rho_J_UA_im_t1,
