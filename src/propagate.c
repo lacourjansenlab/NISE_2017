@@ -1359,13 +1359,12 @@ int time_evolution_mat(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, i
 // }
 
 
-
+// /* Create snapshot time-evolution operator for segment */
 void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, int Ni) {
     int N = Ni;
     float f = non->deltat * icm2ifs * (float)twoPi;
     size_t sz = (size_t)N * N;
 
-    // We gebruiken exact jouw allocatie-methode om layout-verschillen uit te sluiten
     float *H    = (float *)calloc(sz, sizeof(float));
     float *e    = (float *)calloc(N, sizeof(float));
     float *re_U = (float *)calloc(N, sizeof(float));
@@ -1373,10 +1372,10 @@ void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, 
     float *cnr  = (float *)calloc(sz, sizeof(float));
     float *cni  = (float *)calloc(sz, sizeof(float));
 
-    // Belangrijk: BLAS sgemm met beta=0.0 overschrijft Ur/Ui volledig, 
-    // dus we hoeven Ur/Ui hier niet te memsetten.
+    // BLAS sgemm with beta=0.0 overwrites Ur/Ui
+    // no need to memset Ui or Ur
 
-    /* 1. Build Hamiltonian - EXACTE KOPIE */
+    /* 1. Build Hamiltonian */
     for (int a = 0; a < N; a++) {
         int tri_offset = (a * (a + 1)) / 2;
         H[a + N * a] = Hamiltonian_i[a + N * a - tri_offset];
@@ -1396,8 +1395,7 @@ void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, 
         im_U[a] = -sinf(e[a] * f);
     }
 
-    /* 4. Eerste transformatie - EXACTE KOPIE van jouw loops */
-    // Dit zorgt ervoor dat de input voor sgemm 100% identiek is.
+    /* 4. Transform back to site basis. */
     for (int a = 0; a < N; a++) {
         for (int b = 0; b < N; b++) {
             cnr[b + a * N] = H[b + a * N] * re_U[b];
@@ -1405,11 +1403,10 @@ void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, 
         }
     }
 
-    /* 5. De Site Basis Transformatie via BLAS */
-    // De wiskunde: Ur(a,c) = SOM over b van [ H(b,a) * cnr(b,c) ]
-    // Dit is C = A^T * B
+    // Ur(a,c) = sum over b of [ H(b,a) * cnr(b,c) ]
+    // This is C = A^T * B
     float alpha = 1.0f;
-    float beta  = 0.0f; // Overschrijf de output arrays
+    float beta  = 0.0f; // overwrite output matrices
 
     // Ur = H^T * cnr
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
