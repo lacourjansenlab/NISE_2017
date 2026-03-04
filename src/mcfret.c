@@ -2140,12 +2140,12 @@ void triangular_on_square(float *T,float *S,int N){
 void write_propagator_to_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti){
     // This storing of the propagator is used for both the real and imaginator parts of the propagators
     // dim1 = N_segments;
-    int dim2 = sample_length;
-    int dim3 = largest_segment_size;
-    int dim4 = largest_segment_size;
+    size_t dim2 = sample_length;
+    size_t dim3 = largest_segment_size;
+    size_t dim4 = largest_segment_size;
     int k,l;
-    int i = si;
-    int j = ti;
+    size_t i = si;
+    size_t j = ti;
     for (k=0;k<N_site_si;k++){
         for (l=0;l<N_site_si;l++){
             big_array[i * (dim2 * dim3 * dim4) + j * (dim3 * dim4) + k * (dim4) + l] = propagator[k * N_site_si + l];
@@ -2157,12 +2157,12 @@ void write_propagator_to_big_array(float *big_array, float *propagator, int samp
 void read_propagator_from_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti){
     // This storing of the propagator is used for both the real and imaginator parts of the propagators
     // dim1 = N_segments;
-    int dim2 = sample_length;
-    int dim3 = largest_segment_size;
-    int dim4 = largest_segment_size;
+    size_t dim2 = sample_length;
+    size_t dim3 = largest_segment_size;
+    size_t dim4 = largest_segment_size;
     int k,l;
-    int i = si;
-    int j = ti;
+    size_t i = si;
+    size_t j = ti;
     for (k=0;k<N_site_si;k++){
         for (l=0;l<N_site_si;l++){
             propagator[k * N_site_si + l] = big_array[i * (dim2 * dim3 * dim4) + j * (dim3 * dim4) + k * (dim4) + l];
@@ -2960,11 +2960,11 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     // maximum size of segment (Nsite) as two dimension lengths: this implies storing many zeros
     // could be stored in a smaller 3d array as well, for speedup and smaller memory needs
     N_site_max = find_max_segment_size(non->psites, non);
-    int N_dim_big_array_t1 = N_segments*N_t1*N_site_max*N_site_max;
-    int N_dim_big_array_tw = N_segments*N_tw*N_site_max*N_site_max;
+    size_t N_dim_big_array_t1 = (size_t)N_segments*(size_t)N_t1*(size_t)N_site_max*(size_t)N_site_max;
+    size_t N_dim_big_array_tw = (size_t)N_segments*(size_t)N_tw*(size_t)N_site_max*(size_t)N_site_max;
     // the t2 interval needs trajectory snapshots from 0 to N_tw+N_t2
     int times_N2 = N_tw+N_t2+1;
-    int N_dim_big_array_t2 = N_segments*(times_N2)*N_site_max*N_site_max;
+    size_t N_dim_big_array_t2 = (size_t)N_segments*(size_t)times_N2*(size_t)N_site_max*(size_t)N_site_max;
     big_propagator_array_t1_re = (float *)calloc(N_dim_big_array_t1,sizeof(float));
     big_propagator_array_t1_im = (float *)calloc(N_dim_big_array_t1,sizeof(float));
     big_propagator_array_tw_re = (float *)calloc(N_dim_big_array_tw,sizeof(float));
