@@ -245,6 +245,7 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
     int t_ref, tw, tj;
     int idx, row;
 
+
     for (si=0;si<N_segments;si++){        
         N_i = find_H_indices_segment(non->psites, H_indices_si, si, non);
 	
@@ -288,7 +289,6 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
         float *UJJU_re;
         UJJU_re = (float *)calloc(N_i*N_i,sizeof(float));
 
-
         // can put this in its own function
         for (sj=0;sj<N_segments;sj++){
             if (sj != si){
@@ -323,6 +323,7 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
                 free(Jij);
             }
         }
+        
 	/* Update NISE log file */
 	log=fopen("NISE.log","a");
 	fprintf(log,"Finished preparing all constant matrices for segment %d\n",si);
@@ -391,6 +392,7 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
             time_now=log_time(time_now,log);
             fclose(log);
 	}/* Closing loop over samples */
+    
 	printf("Closing the loop over samples\n");
         free(rho_0_si);
         free(rho_ii_JijJji);
