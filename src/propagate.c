@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <omp.h>
+#include <cblas.h>
 #include "types.h"
 #include "NISE_subs.h"
 #include "randomlib.h"
@@ -1297,6 +1298,128 @@ int time_evolution_mat(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, i
     free(H), free(cr), free(ci), free(re_U), free(im_U), free(e), free(cnr), free(cni);
     return elements;
 }
+
+
+// /* Create truncated time-evolution operator for segment */
+// void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui,int Ni) {
+//     // Computes the time evolution matrix (slower than using the propagator routines when computing a product of propagators)
+//     // Hamiltonian_i is the segment hamiltonian in upper triangle format
+//     // Ur Ui are the time evolution matrices that will be overwritten
+//     // Ni is the segment size
+//     float f, g;
+//     float *H, *re_U, *im_U, *e;
+//     float *cr, *ci;
+//     float *cnr, *cni;
+//     int indexA, indexB, N;
+//     int a, b, c, d;
+//     int elements;
+//     N = Ni;
+//     f = non->deltat * icm2ifs * twoPi;
+//     H = (float *)calloc(N * N, sizeof(float));
+//     re_U = (float *)calloc(N * N, sizeof(float));
+//     e = (float *)calloc(N, sizeof(float));
+//     im_U = (float *)calloc(N * N, sizeof(float));
+//     cnr = (float *)calloc(N * N, sizeof(float));
+//     cni = (float *)calloc(N * N, sizeof(float));
+
+//     // clear the output array
+//     memset(Ur, 0, N*N*sizeof(float));
+//     memset(Ui, 0, N*N*sizeof(float));
+
+//     /* Build Hamiltonian */
+//     for (a = 0; a < N; a++) {
+//         H[a + N * a] = Hamiltonian_i[a + N * a - (a * (a + 1)) / 2]; // Diagonal
+//         for (b = a + 1; b < N; b++) {
+//             H[a + N * b] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
+//             H[b + N * a] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
+//         }
+//     }    diagonalizeLPD(H, e, N);
+    
+//     /* Exponentiate [U=exp(-i/h H dt)] */
+//     for (a = 0; a < N; a++) {
+//         re_U[a] = cos(e[a] * f);
+//         im_U[a] = -sin(e[a] * f);
+//     }
+
+//     /* Transform to site basis */
+//     for (a = 0; a < N; a++) {
+//         for (b = 0; b < N; b++) {
+//             cnr[b + a * N] += H[b + a * N] * re_U[b], cni[b + a * N] += H[b + a * N] * im_U[b];
+//         }
+//     }
+//     for (a = 0; a < N; a++) {
+//         for (b = 0; b < N; b++) {
+//             for (c = 0; c < N; c++) {
+//                 Ur[a + c * N] += H[b + a * N] * cnr[b + c * N], Ui[a + c * N] += H[b + a * N] * cni[b + c * N];
+//             }
+//         }
+//     }
+//     free(H), free(re_U), free(im_U), free(e), free(cnr), free(cni);
+//     return;
+// }
+
+
+// /* Create snapshot time-evolution operator for segment */
+void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, int Ni) {
+    int N = Ni;
+    float f = non->deltat * icm2ifs * (float)twoPi;
+    size_t sz = (size_t)N * N;
+
+    float *H    = (float *)calloc(sz, sizeof(float));
+    float *e    = (float *)calloc(N, sizeof(float));
+    float *re_U = (float *)calloc(N, sizeof(float));
+    float *im_U = (float *)calloc(N, sizeof(float));
+    float *cnr  = (float *)calloc(sz, sizeof(float));
+    float *cni  = (float *)calloc(sz, sizeof(float));
+
+    // BLAS sgemm with beta=0.0 overwrites Ur/Ui
+    // no need to memset Ui or Ur
+
+    /* 1. Build Hamiltonian */
+    for (int a = 0; a < N; a++) {
+        int tri_offset = (a * (a + 1)) / 2;
+        H[a + N * a] = Hamiltonian_i[a + N * a - tri_offset];
+        for (int b = a + 1; b < N; b++) {
+            float val = Hamiltonian_i[b + N * a - tri_offset];
+            H[a + N * b] = val;
+            H[b + N * a] = val;
+        }
+    }
+
+    /* 2. Diagonalize */
+    diagonalizeLPD(H, e, N);
+
+    /* 3. Exponentiate */
+    for (int a = 0; a < N; a++) {
+        re_U[a] = cosf(e[a] * f);
+        im_U[a] = -sinf(e[a] * f);
+    }
+
+    /* 4. Transform back to site basis. */
+    for (int a = 0; a < N; a++) {
+        for (int b = 0; b < N; b++) {
+            cnr[b + a * N] = H[b + a * N] * re_U[b];
+            cni[b + a * N] = H[b + a * N] * im_U[b];
+        }
+    }
+
+    // Ur(a,c) = sum over b of [ H(b,a) * cnr(b,c) ]
+    // This is C = A^T * B
+    float alpha = 1.0f;
+    float beta  = 0.0f; // overwrite output matrices
+
+    // Ur = H^T * cnr
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
+                N, N, N, alpha, H, N, cnr, N, beta, Ur, N);
+
+    // Ui = H^T * cni
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
+                N, N, N, alpha, H, N, cni, N, beta, Ui, N);
+
+    // Cleanup
+    free(H); free(e); free(re_U); free(im_U); free(cnr); free(cni);
+}
+
 
 /* This function propagates the doubles for three level systems with the */
 /* sparse time-evolution operator algorithm. The singles time evolution */

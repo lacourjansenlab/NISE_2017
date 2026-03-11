@@ -38,6 +38,7 @@ add_executable(translate
 find_package(LAPACK REQUIRED)
 target_link_libraries(NISE ${LAPACK_LIBRARIES})
 target_link_libraries(translate ${LAPACK_LIBRARIES})
+target_link_libraries(NISE ${BLAS_LIBRARIES})
 
 # FFTW
 # Not using the FFTW3 script, since FFTW3 installed using ./configure && make && make install
