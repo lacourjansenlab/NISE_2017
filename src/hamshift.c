@@ -58,12 +58,15 @@ void read_shift(t_non *non){
         }
         // Check if offset is valid
         if (fabs(non->SingleShift[i*2+1])>non->max1-non->min1){
-            printf(RED "Invalid offset for single shift: %f. Must be within the range +-%f.\n" RESET,non->SingleShift[i*2+1],non->max1-non->min1);
-            exit(-1);
+            printf(YELLOW "Invalid offset for single shift: %f. Must be within the range +-%f.\n" RESET,non->SingleShift[i*2+1],non->max1-non->min1);
         }
         if (non->printLevel<2){
-            printf("Applying single shift to site %d: multiply by %f and add %f\n",non->SingleShiftSite[i],non->SingleShift[i*2],non->SingleShift[i*2+1]);
+            printf("Applying single shift to site %d: multiply by %f and add %f.\n",non->SingleShiftSite[i],non->SingleShift[i*2],non->SingleShift[i*2+1]);
         }
+    }
+    // Add an extra line for better readability if single shifts are applied
+    if (non->printLevel<2){
+        printf("\n");
     }
 
     fclose(shiftFile);
