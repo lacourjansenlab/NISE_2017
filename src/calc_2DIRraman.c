@@ -81,9 +81,8 @@ void calc_2DIRraman(t_non* non, int parentRank, int parentSize, int subRank, int
     non->shifte = shift1;
     non->shiftf = 2 * shift1;
     // Read single shifts if needed
-    if (non->SingleShiftSites > 0) {
-        read_shift(non);
-    }
+    read_shift(non);
+    
 
     // Arrays where the result is stored, these will be reduced (summed) at the end!
 
