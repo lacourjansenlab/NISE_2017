@@ -80,8 +80,6 @@ void calc_2DIR(t_non* non, int parentRank, int parentSize, int subRank, int subS
     if(parentRank == 0) printf("Rotating Wave Frequency shift %f.\n", shift1);
     non->shifte = shift1;
     non->shiftf = 2 * shift1;
-    // Read single shifts if needed
-    read_shift(non);
     
 
     // Arrays where the result is stored, these will be reduced (summed) at the end!

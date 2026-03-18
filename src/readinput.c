@@ -8,6 +8,7 @@
 #include "types.h"
 #include "readinput.h"
 #include "NISE_subs.h"
+#include "hamshift.h"
 
 /* Read the input file */
 void readInput(int argc, char* argv[], t_non* non) {
@@ -281,6 +282,9 @@ void readInput(int argc, char* argv[], t_non* non) {
      (!strcmp(non->technique, "2DIRraman1"))|| (!strcmp(non->technique, "2DIRraman2"))|| (!strcmp(non->technique, "2DIRraman3"))) {
         printf("\nThe waiting time will be %f fs.\n\n", non->tmax2 * non->deltat);
     }
+
+    // Read single shifts 
+    //read_shift(non);
 
     // Prepare static spec
     non->statsteps = rint(fabs((non->statend - non->statstart) / non->statstep));

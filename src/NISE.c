@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
         // Read the input
         readInput(argc, argv, non);
-
+        
         // Do initial check of the configuration
         initResult = control(non);
         initResult = autodetect_singles(non);
@@ -138,6 +138,7 @@ int main(int argc, char* argv[]) {
 
         MPI_Bcast(non->psites, non->singles, MPI_INT, 0, MPI_COMM_WORLD);
     }
+    read_shift(non); // This needs a fix as psites above 
 
     /* Inform user of parallel info */
     if (parentRank==0){
