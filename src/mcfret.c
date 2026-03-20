@@ -252,6 +252,12 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
         float *U_re, *U_im;
 	U_re=(float *)calloc(N_i*N_i,sizeof(float));
 	U_im=(float *)calloc(N_i*N_i,sizeof(float));
+        float *U_re_snap, *U_im_snap;
+	U_re_snap=(float *)calloc(N_i*N_i,sizeof(float));
+	U_im_snap=(float *)calloc(N_i*N_i,sizeof(float));
+        float *work_re_si, *work_im_si;
+        work_re_si =(float *)calloc(N_i*N_i,sizeof(float));
+        work_im_si =(float *)calloc(N_i*N_i,sizeof(float));
 	
         
 	/* The segment si hamiltonian in upper triangle format */
@@ -382,9 +388,15 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
 
              	// Propagate segment i (~N_i^3 process)
 		// only here is propagation of the hamiltonian performed
-		propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tw*x, N_i);
-	    // printf("Closing the loop over waiting time\n");
+		// propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tw*x, N_i);
+	    
+	        // try with new, special propagation routine
+            	time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+            	propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+	
+		
 	    }/* Closing loop over waiting time */
+	    // printf("Closing the loop over waiting time\n");
             /* Update NISE log file */
 	    log=fopen("NISE.log","a");
             fprintf(log,"Finished sample %d for segment %d\n",samples,si);
@@ -398,7 +410,11 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
 	free(UJJU_re);
 	free(U_re);
 	free(U_im);
-        free(Jij_rho_jj_Jji);	
+        free(U_re_snap);
+	free(U_im_snap);
+	free(work_re_si);
+	free(work_im_si);
+	free(Jij_rho_jj_Jji);	
 	free(Hamiltonian_segment_triu);
     }/* Closing loop over segment si */
 
@@ -886,9 +902,15 @@ void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
 	    N_i = find_H_indices_segment(non->psites, H_indices_si, si, non);
 	    printf("Segment size: %d\n",N_i); 
 	    /* Allocating memory for the real and imaginary part of the wave function that we need to propagate */
-            float *U_re, *U_im;
+        float *U_re, *U_im;
+        float *U_re_snap, *U_im_snap;
 	    U_re=(float *)calloc(N_i*N_i,sizeof(float));	
 	    U_im=(float *)calloc(N_i*N_i,sizeof(float));
+	    U_re_snap=(float *)calloc(N_i*N_i,sizeof(float));	
+	    U_im_snap=(float *)calloc(N_i*N_i,sizeof(float));
+        float *work_re_si, *work_im_si;
+        work_re_si =(float *)calloc(N_i*N_i,sizeof(float));
+        work_im_si =(float *)calloc(N_i*N_i,sizeof(float));
  
 	    /* The segment si hamiltonian in upper triangle format */
             float *Hamiltonian_segment_triu;
@@ -920,9 +942,15 @@ void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
 	           ///isolate segment Hamiltonian
 		   isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_i, non);
 			
-		   /* Update the MCFRET 'absorpion matrix' or propagator */	
+		   /* Update the MCFRET 'absorpion matrix' or propagator */
+
+           // original, working with coupling propagation scheme
 		   mcfret_response_function_sub_segments(re_S_1, im_S_1,t1,non,U_re,U_im,H_indices_si, N_i);        
-		   propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_i);
+		   // propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_i);
+
+            // try with new, special propagation routine
+            time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+            propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
 		   /* We are closing the loop over time delays - t1 times */
 	       }
 
@@ -933,9 +961,13 @@ void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
 	    time_now=log_time(time_now,log);
 	    fclose(log);
 	    }/* Closing the loop over samples */
-    	    free(U_re);	
-	    free(U_im);  
-            free(Hamiltonian_segment_triu);
+    	free(U_re);
+	    free(U_im);
+    	free(U_re_snap);
+	    free(U_im_snap);
+    	free(work_re_si);
+	    free(work_im_si);
+        free(Hamiltonian_segment_triu);
     }
 
     /* The calculation is finished, lets write output */
@@ -2472,10 +2504,10 @@ void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_
         for (sj=0;sj<N_segments;sj++){
             if (si != sj){	
                 plateau_I = -1e-6 * rate_matrix_2nd[si+N_segments*sj] * (rate_matrix_2nd[si+N_segments*sj] + rate_matrix_2nd[sj+N_segments*si]);
-                plateau_II = responses_4th_tw[N_segments * N_segments * (N_tw - 1) + si * N_segments + sj] * prefactor / samples;
+                plateau_II = responses_4th_tw[N_segments * N_segments * (N_tw - 1) + si * N_segments + sj] * prefactor / (samples + 1);
                 for (tw=0;tw<N_tw;tw++){
 		            weight = 1;
-                    response = responses_4th_tw[N_segments * N_segments * tw + si * N_segments + sj] * prefactor / samples;
+                    response = responses_4th_tw[N_segments * N_segments * tw + si * N_segments + sj] * prefactor / (samples + 1);
                     if (tw == 0){
                         weight =  0.5;
                     }
@@ -2968,7 +3000,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     big_propagator_array_t1_re = (float *)calloc(N_dim_big_array_t1,sizeof(float));
     big_propagator_array_t1_im = (float *)calloc(N_dim_big_array_t1,sizeof(float));
     big_propagator_array_tw_re = (float *)calloc(N_dim_big_array_tw,sizeof(float));
-    big_propagator_array_tw_im = (float *)calloc(N_dim_big_array_tw,sizeof(float));    
+    big_propagator_array_tw_im = (float *)calloc(N_dim_big_array_tw,sizeof(float));
     big_propagator_array_t2_re = (float *)calloc(N_dim_big_array_t2,sizeof(float));
     big_propagator_array_t2_im = (float *)calloc(N_dim_big_array_t2,sizeof(float));
 
@@ -3199,8 +3231,8 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     rate_matrix_4th_II_file = fopen("RateMatrix_4th_II.dat","w");
     for (row=0;row<N_segments;row++){
         for (column=0;column<N_segments;column++){
-            fprintf(rate_matrix_4th_I_file,"%f ", rate_matrix_4th_I[column + row *N_segments]);
-            fprintf(rate_matrix_4th_II_file,"%f ", rate_matrix_4th_II[column + row *N_segments]);
+            fprintf(rate_matrix_4th_I_file,"%e ", rate_matrix_4th_I[column + row *N_segments]);
+            fprintf(rate_matrix_4th_II_file,"%e ", rate_matrix_4th_II[column + row *N_segments]);
         }
         fprintf(rate_matrix_4th_I_file,"\n");
         fprintf(rate_matrix_4th_II_file,"\n");
@@ -3214,7 +3246,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
     for (tw=0;tw<N_tw;tw++){
         fprintf(responses_4th_file,"%f ",tw*non->deltat);
             for (column=0;column<N_column;column++){
-                fprintf(responses_4th_file,"%e ", prefactor * responses_4th_tw[column + tw * N_column] / samples);
+                fprintf(responses_4th_file,"%e ", prefactor * responses_4th_tw[column + tw * N_column] / (samples + 1));
             }
         fprintf(responses_4th_file,"\n");
     }
@@ -3227,7 +3259,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
         diagram_file = fopen(diagram_filenames[diag],"w");
         for (row=0;row<N_t2;row++){
             for (column=0;column<N_t1;column++){
-                fprintf(diagram_file,"%f ", diagram_s01_list[diag][column + row *N_t1] / N_samples);
+                fprintf(diagram_file,"%e ", diagram_s01_list[diag][column + row *N_t1] / N_samples);
             }
             fprintf(diagram_file,"\n");
         }
