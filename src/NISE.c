@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         readInput(argc, argv, non);
         
         // Read the shift file if pressent (on master)
-        //read_shift(non);
+        read_shift(non);
 
         // Do initial check of the configuration
         initResult = control(non);
@@ -142,9 +142,8 @@ int main(int argc, char* argv[]) {
         MPI_Bcast(non->psites, non->singles, MPI_INT, 0, MPI_COMM_WORLD);
     }
 
-    read_shift(non);
     // Sync the single shift array, allocate it first if not root process, if necessary
- /*   int has_single_shift = (parentRank == 0 && non->SingleShift != NULL);
+    int has_single_shift = (parentRank == 0 && non->SingleShift != NULL);
     MPI_Bcast(&has_single_shift, 1, MPI_INT, 0, MPI_COMM_WORLD);
     
     if (has_single_shift) {
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
         MPI_Bcast(&non->SingleShiftSites, 1, MPI_INT, 0, MPI_COMM_WORLD);
         MPI_Bcast(non->SingleShiftSite, non->SingleShiftSites, MPI_INT, 0, MPI_COMM_WORLD);
         MPI_Bcast(non->SingleShift, 2*non->SingleShiftSites, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    }*/
+    }
 
     /* Inform user of parallel info */
     if (parentRank==0){

@@ -65,7 +65,7 @@ void read_shift(t_non *non){
         }
     }
     // Add an extra line for better readability if single shifts are applied
-    if (non->printLevel<2){
+    if (non->SingleShiftSites>0){
         printf("\n");
     }
 

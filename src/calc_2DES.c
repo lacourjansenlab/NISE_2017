@@ -82,8 +82,6 @@ void calc_2DES(t_non* non, int parentRank, int parentSize, int subRank, int subS
     non->shifte = shift1;
     non->shiftf = 2 * shift1;
 
-    // Read single shifts if needed
-    read_shift(non);
 
     // Arrays where the result is stored, these will be reduced (summed) at the end!
 
