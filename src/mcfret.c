@@ -123,7 +123,7 @@ void mcfret(t_non *non){
 	printf("Done with computing the 4th order traces.\n");
     }
 
-    /* Call the 4th order approximation routine */
+    /* Call the full 4th order routine */
     if (!strcmp(non->technique, "MCFRET-4th-full")){
         printf("Starting calculation of the full 4th order rates.\n");
         printf("Calculating 4th order from precalculated coupling and density\n");
@@ -946,13 +946,13 @@ void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
 			
 		   /* Update the MCFRET 'absorpion matrix' or propagator */
 
-           // original, working with coupling propagation scheme
+           	   // original, working with coupling propagation scheme
 		   mcfret_response_function_sub_segments(re_S_1, im_S_1,t1,non,U_re,U_im,H_indices_si, N_i);        
 		   // propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_i);
 
-            // try with new, special propagation routine
-            time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
-            propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+            	   // try with new, special propagation routine
+            	   time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+            	   propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
 		   /* We are closing the loop over time delays - t1 times */
 	       }
 
@@ -2950,7 +2950,9 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
 
     /* Initialize sample numbers */
     int samples, N_samples, N_segments;
-    N_samples=determine_samples(non);
+    // N_samples=determine_samples(non);
+    N_samples = (non->length - (non->tmax1 + non->tmax2 + non->tmax3)-1)/non->sample + 1; 
+    printf("Using %d samples\n", N_samples);
     N_segments=project_dim(non);
     log=fopen("NISE.log","a");
     fprintf(log,"Begin sample: %d, End sample: %d.\n",non->begin,non->end);
@@ -3031,7 +3033,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
 
     // loop over samples and store the 4th order rate after each sample
     printf("Starting the loop over the samples.\n");
-    for (samples=non->begin;samples<non->end;samples++){
+    for (samples=0;samples <N_samples;samples++){
         //starting index of this sample
 	    t_ref = samples*non->sample;
         clearvec(big_propagator_array_t2_re,N_dim_big_array_t2);
@@ -3102,7 +3104,12 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 tj = t_ref+N_t1 + ti + 1; //+1 to ensure the +0 snapshot belongs to the t1 interval
                 write_propagator_to_big_array(big_propagator_array_tw_re,U_re,N_tw,si,N_site_si, N_site_max, ti);
                 write_propagator_to_big_array(big_propagator_array_tw_im,U_im,N_tw,si,N_site_si, N_site_max, ti);
-                /* Read Hamiltonian */
+		// there is overlap between the tw and t2 intervals within a sample
+		// store the snapshots in the large t2 array
+		write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
+                write_propagator_to_big_array(big_propagator_array_t2_im,U_im_snap,times_N2,si,N_site_si, N_site_max, ti);
+
+		/* Read Hamiltonian */
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
                 // isolate the segment i with projection routine to obtain smaller matrix
                 isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_site_si, non);
@@ -3122,7 +3129,7 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
             /* For the t2 interval, store the individual snapshots, rather than the compounded propagators */
             /* The actual propagation (combination of specific snapshot propagators) will be done in the 3d time loop */
             /* First snapshot properly stored (no unit matrix here as starting point here, but in triple time loop instead)*/
-            for (ti=0;ti<times_N2;ti++){
+            for (ti=N_tw;ti<times_N2;ti++){
                 tj = t_ref+N_t1 + ti +1; //+1 to ensure the +0 snapshot belongs to the t1 interval
                 /* Read Hamiltonian */
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
