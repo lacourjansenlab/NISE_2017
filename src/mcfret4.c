@@ -13,6 +13,7 @@
 #include "propagate_segment.h"
 #include "read_trajectory.h"
 #include "mcfret.h"
+#include "mcfret4.h"
 
 
 void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,int sj){
