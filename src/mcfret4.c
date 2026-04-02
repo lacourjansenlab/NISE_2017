@@ -16,14 +16,15 @@
 #include "mcfret4.h"
 
 /* Compute the UJJU matrix product */
-void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,int sj){
+void compute_UJJU(float *UJJU_re, float *UJJU_im, float *JJ, float *U_re, float *U_im, int N_i,int sj){
     int i1, i2, i3;
     float *intermediate_re, *intermediate_im;
-    float elem;
+    float elem_re, elem_im;
     intermediate_re = (float *)calloc(N_i*N_i,sizeof(float));
     intermediate_im = (float *)calloc(N_i*N_i,sizeof(float));
 
     clearvec(UJJU_re, N_i*N_i);
+    clearvec(UJJU_im, N_i*N_i);
 
     // first a full matrix product
 #pragma omp parallel for
@@ -43,15 +44,18 @@ void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,i
             // could include an if-statement, so as not to write the diagonal twice
             // no if-statement, as not including it will likely be faster (Check N^2 statements or write N floats)
             for (i3=0;i3<N_i;i3++){
-                // elem = U_dag_re[i1*N_i+i3] * intermediate_re[i3*N_i+i2] - U_dag_im[i1*N_i+i3] * intermediate_im[i3*N_i+i2];
+                // elem_re = U_dag_re[i1*N_i+i3] * intermediate_re[i3*N_i+i2] - U_dag_im[i1*N_i+i3] * intermediate_im[i3*N_i+i2];
                 // use that U_dag_re[i1*N_i+i3] = U_re[i3*N_i+i1]
                 // use that U_dag_im[i1*N_i+i3] = - U_im[i3*N_i+i1]
             
-                elem = U_re[i3*N_i+i1] * intermediate_re[i3*N_i+i2] + U_im[i3*N_i+i1] * intermediate_im[i3*N_i+i2];
-                UJJU_re[i1*N_i+i2] += elem;
+                elem_re = U_re[i3*N_i+i1] * intermediate_re[i3*N_i+i2] + U_im[i3*N_i+i1] * intermediate_im[i3*N_i+i2];
+                elem_im = U_re[i3*N_i+i1] * intermediate_im[i3*N_i+i2] - U_im[i3*N_i+i1] * intermediate_re[i3*N_i+i2];
+                UJJU_re[i1*N_i+i2] += elem_re;
+                UJJU_im[i1*N_i+i2] += elem_im;
                 }
-                // write hermitian conjugate: real part identical
+            // write hermitian conjugate
             UJJU_re[i2*N_i+i1] = UJJU_re[i1*N_i+i2];
+            UJJU_im[i2*N_i+i1] = - UJJU_im[i1*N_i+i2];
     	}
     }
 
@@ -149,7 +153,8 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
     FILE *mu_traj;
     FILE *log;
     FILE *Cfile;
-    FILE *all_traces_file;
+    FILE *all_traces_file_re;
+    FILE *all_traces_file_im;
 
     mu_xyz=(float *)calloc(non->singles*3,sizeof(float));
     Hamil_i_e=(float *)calloc((non->singles+1)*non->singles/2,sizeof(float));
@@ -182,13 +187,16 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
     // prepare traces I and II for every pair direction, so 2 * ns * (ns - 1) time dependent traces will be the result of this routine
     // for simplicity 2 * ns * ns columns will be given (2 * ns are zero)
     // a single array is easiest
-    float *all_traces;
-    all_traces = (float *)calloc(N_tw*2*N_segments*N_segments,sizeof(float));
+    float *all_traces_re;
+    float *all_traces_im;
+    all_traces_re = (float *)calloc(N_tw*2*N_segments*N_segments,sizeof(float));
+    all_traces_im = (float *)calloc(N_tw*2*N_segments*N_segments,sizeof(float));
     
     int N_rows;
     N_rows = 2*N_segments*N_segments;
 
-    float trace_I, trace_II;
+    float trace_I_re, trace_II_re;
+    float trace_I_im, trace_II_im;
     int si, sj;
     int t_ref, tw, tj;
     int idx, row;
@@ -238,10 +246,6 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
         // preset JijJji
         float *JijJji;
         JijJji = (float *)calloc(N_i*N_i*(N_segments),sizeof(float));
-	
-       	// preset UJJU
-        float *UJJU_re;
-        UJJU_re = (float *)calloc(N_i*N_i,sizeof(float));
 
         // can put this in its own function
         for (sj=0;sj<N_segments;sj++){
@@ -272,17 +276,23 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
                 // segment j has initial population in density matrix
                 // prepare matrix product II for rate j-> i
                 // compute Jij rho_j Jji
-                compute_JrhoJ(Jij_rho_jj_Jji, Jij, rho_0_sj, N_i, N_j, sj); 
+                compute_JrhoJ(Jij_rho_jj_Jji, Jij, rho_0_sj, N_i, N_j, sj);
                 free(rho_0_sj);
                 free(Jij);
             }
         }
         
-	/* Update NISE log file */
-	log=fopen("NISE.log","a");
-	fprintf(log,"Finished preparing all constant matrices for segment %d\n",si);
-	time_now=log_time(time_now,log);
-	fclose(log);
+        /* Update NISE log file */
+        log=fopen("NISE.log","a");
+        fprintf(log,"Finished preparing all constant matrices for segment %d\n",si);
+        time_now=log_time(time_now,log);
+        fclose(log);
+
+       	// preset UJJU
+        float *UJJU_re;
+        float *UJJU_im;
+        UJJU_re = (float *)calloc(N_i*N_i,sizeof(float));
+        UJJU_im = (float *)calloc(N_i*N_i,sizeof(float));
 
         for (samples=non->begin;samples<non->end;samples++){
             t_ref = samples*non->sample;
@@ -310,57 +320,62 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
                         // calculate U_i_JijJji_Ui (twice ~ N_i^3)
                         // special subroutine that makes use of the fact that final product is hermitian
                         
-                        // only the real part of UJJU is needed for the 4th order correction    
-                        compute_UJJU(UJJU_re, JijJji + N_i*N_i * sj, U_re, U_im, N_i, sj);
+                        // only the real part of UJJU is needed for the 4th order correction in case of a diagonal density matrix    
+                        compute_UJJU(UJJU_re, UJJU_im, JijJji + N_i*N_i * sj, U_re, U_im, N_i, sj);
 
-                            // OPTION 1: immediately calculate the trace, not too expensive because of the special function and requires very little memory
-                            // Alternative is to keep the time dependent UJJU in memory, but that requires much more memory
+                        // OPTION 1: immediately calculate the trace, not too expensive because of the special function and requires very little memory
+                        // Alternative is to keep the time dependent UJJU in memory, but that requires much more memory
 
                         // calculate trace I (make use of special matrix product trace function, ~N_i^2 )
                         // here i is the donor segment
                         // (use subroutine, input 'rho J J.T' and 'UDJJUD')
                                 // printf("Matrix sum UJJU_re %f\n",matrix_sum(UJJU_re,N_i));
-                        trace_I = matrix_mul_traced_DA(rho_ii_JijJji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        trace_I_re = matrix_mul_traced_DA(rho_ii_JijJji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        trace_I_im = matrix_mul_traced_DA(rho_ii_JijJji + N_i*N_i*sj, UJJU_im, N_i, N_i);
 
                         //calculate trace II (make use of special matrix product trace function, ~N_i^2)
                         // here i is the acceptor segment
                         // (use subroutine, input 'J.T rho J' and 'UAJJUA')
-                        trace_II = matrix_mul_traced_DA(Jij_rho_jj_Jji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        trace_II_re = matrix_mul_traced_DA(Jij_rho_jj_Jji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        trace_II_im = matrix_mul_traced_DA(Jij_rho_jj_Jji + N_i*N_i*sj, UJJU_im, N_i, N_i);
                         
                         // update trace I (rate i to j) at tw
-                        all_traces[(si*2*N_segments + 2*sj+0)*N_tw+tw] += trace_I;
+                        all_traces_re[(si*2*N_segments + 2*sj+0)*N_tw+tw] += trace_I_re;
+                        all_traces_im[(si*2*N_segments + 2*sj+0)*N_tw+tw] += trace_I_im;
                         // update trace II (rate j to i) at tw
-                        all_traces[(sj*2*N_segments + 2*si+1)*N_tw+tw] += trace_II;
+                        all_traces_re[(sj*2*N_segments + 2*si+1)*N_tw+tw] += trace_II_re;
+                        all_traces_im[(sj*2*N_segments + 2*si+1)*N_tw+tw] += trace_II_im;
                     }
                 // printf("Closing the loop over segments sj\n");
                 }/* Closing loop over segment sj*/
 
-                        // Propagate segment i (~N_i^3 process)
+                // Propagate segment i (~N_i^3 process)
                 // only here is propagation of the hamiltonian performed
                 // propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tw*x, N_i);
                 
-                    // try with new, special propagation routine
-                        time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
-                        propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+                // try with new, special propagation routine
+                time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+                propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
 	
 		
 	    }/* Closing loop over waiting time */
 	    // printf("Closing the loop over waiting time\n");
-            /* Update NISE log file */
+        /* Update NISE log file */
 	    log=fopen("NISE.log","a");
-            fprintf(log,"Finished sample %d for segment %d\n",samples,si);
-            time_now=log_time(time_now,log);
-            fclose(log);
+        fprintf(log,"Finished sample %d for segment %d\n",samples,si);
+        time_now=log_time(time_now,log);
+        fclose(log);
 	}/* Closing loop over samples */
     
 	printf("Closing the loop over samples\n");
-        free(rho_0_si);
-        free(rho_ii_JijJji);
+    free(rho_0_si);
+    free(rho_ii_JijJji);
 	free(JijJji);
 	free(UJJU_re);
+    free(UJJU_im);
 	free(U_re);
 	free(U_im);
-        free(U_re_snap);
+    free(U_re_snap);
 	free(U_im_snap);
 	free(work_re_si);
 	free(work_im_si);
@@ -370,22 +385,29 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
 
     // normalise the traces
     for (idx=0;idx<N_rows*N_tw;idx++){
-        all_traces[idx] /= N_samples;
+        all_traces_re[idx] /= N_samples;
+        all_traces_im[idx] /= N_samples;
     }
     
     // write all traces to file
-    all_traces_file = fopen("all_traces_file.dat","w");
+    all_traces_file_re = fopen("all_traces_file.dat","w");
+    all_traces_file_im = fopen("all_traces_file_imag.dat","w");
     for (tw=0;tw<N_tw;tw++){
-	fprintf(all_traces_file,"%f ",tw*non->deltat);
+	fprintf(all_traces_file_re,"%f ",tw*non->deltat);
+    fprintf(all_traces_file_im,"%f ",tw*non->deltat);
     	for (row=0;row<N_rows;row++){
-            fprintf(all_traces_file,"%f ",all_traces[row*N_tw+tw]);
+            fprintf(all_traces_file_re,"%f ",all_traces_re[row*N_tw+tw]);
+            fprintf(all_traces_file_im,"%f ",all_traces_im[row*N_tw+tw]);
 	}
-	fprintf(all_traces_file,"\n");
+	fprintf(all_traces_file_re,"\n");
+    fprintf(all_traces_file_im,"\n");
     }
-    fclose(all_traces_file);
+    fclose(all_traces_file_re);
+    fclose(all_traces_file_im);
     free(H_indices_si);
     free(H_indices_sj);
-    free(all_traces);
+    free(all_traces_re);
+    free(all_traces_im);
     free(mu_xyz);
     free(Hamil_i_e);
     return;

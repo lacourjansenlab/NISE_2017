@@ -54,7 +54,7 @@ typedef struct {
 } fourth_order_workspace;
 
 void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non);
-void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,int sj);
+void compute_UJJU(float *UJJU_re, float *UJJU_im, float *JJ, float *U_re, float *U_im, int N_i,int sj);
 void compute_JrhoJ(float *Jij_rho_jj_Jji, float* Jij, float *rho_0_sj, int N_i, int N_j, int sj);
 void compute_rhoJJ(float *rho_ii_JijJji, float *JijJji, float* Jij, float *rho_0_si, int N_i, int N_j, int sj);
 
