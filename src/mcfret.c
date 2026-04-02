@@ -176,22 +176,6 @@ void mcfret(t_non *non){
     return;
 }
 
-/* For testing purposes */
-/* Find the sum of all matrix elements */
-float matrix_sum(float *matrix,int N){
-    int i,j;
-    float sum;
-    sum=0;
-    for (i=0;i<N;i++){
-        for (j=0;j<N;j++){
-            sum=sum+matrix[N*i+j];
-            // printf("element %f\n",matrix[N*i+j]);
-        }
-    }
-    return sum;
-}
-/* For testing purposes */
-
 // Segmented Hamiltonian propagation
 /* Calculate Absorption matrix */
 void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
@@ -306,14 +290,20 @@ void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non){
 		        isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_i, non);
 			
 		        /* Update the MCFRET 'absorpion matrix' or propagator */
+		        mcfret_response_function_sub_segments(re_S_1, im_S_1,t1,non,U_re,U_im,H_indices_si, N_i);
 
-           	    // original, working with coupling propagation scheme
-		        mcfret_response_function_sub_segments(re_S_1, im_S_1,t1,non,U_re,U_im,H_indices_si, N_i);        
-		        propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_i);
-
-            	// try with new, special propagation routine
-            	// time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
-            	// propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+           	    // segmented 'coupling' propagation scheme
+                if (non->propagation==1){
+		            propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tj*x, N_i);
+                }
+                else{
+            	    // Full diagonal propagation routine
+                    if (t1==0 && si==0 && samples==non->begin){
+                        printf("Using full propagation scheme, with MKL & OPENBLAS.\n");
+                    }
+                    time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+            	    propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+                }
 	       } /* We are closing the loop over time delays - t1 times */
 
 	    /* Update NISE log file */ 
@@ -753,6 +743,8 @@ void mcfret_rate_from_abs(float *rate_matrix,float *coherence_matrix,int segment
     float twoPi2;
     float trace_reaux, trace_imaux;
     FILE *ratefile, *ratefile_imag;
+    FILE *log;
+
     N=non->singles;
     nn2=non->singles*non->singles;
     twoPi2=twoPi*twoPi;
@@ -777,7 +769,11 @@ void mcfret_rate_from_abs(float *rate_matrix,float *coherence_matrix,int segment
             /* Exclude rate between same segments */
             if (sj!=si){
                 /* Loop over time delay */
-                for (t1=0;t1<non->tmax;t1++){    
+                for (t1=0;t1<non->tmax;t1++){   
+                    log=fopen("NISE.log","a");
+                    fprintf(log,"Between segments %d and %d, computing response at t = %d \n",si, sj, t1);
+                    fclose(log);
+
                     /* compute the hermitian conjugate of the absorption matrix */
                     hermitian_conjugate(re_Abs+nn2*t1,im_Abs+nn2*t1,re_Abs_hermi,im_Abs_hermi,N,N);
 

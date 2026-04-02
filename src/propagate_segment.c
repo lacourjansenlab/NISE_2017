@@ -130,6 +130,7 @@ void propagate_vec_coupling_S_segments(t_non* non, float* Hamiltonian_i, float* 
     free(col), free(row);
 }
 
+/* Propagate using a precalculated snapshot */
 void propagate_snapshot(float *U_snap_re, float *U_snap_im, float **U_comp_re, float **U_comp_im, float **temp_re, float **temp_im, int N){
     // multiply the propagator with the next snapshot
     // requires precalculated snapshots

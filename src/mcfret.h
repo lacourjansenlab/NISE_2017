@@ -18,7 +18,6 @@ void write_matrix_to_file_float(char fname[],float *matrix,int N);
 void read_response_from_file(char fname[],float *re_R,float *im_R,int N,int tmax);
 void triangular_on_square(float *T,float *S,int N);
 void average_density_matrix(float *ave_den_mat,t_non *non);
-float matrix_sum(float *matrix,int N);
 
 void mcfret_propagation_segmented(float *re_S_1,float *im_S_1,t_non *non);
 void mcfret_response_function_sub_segments(float *re_S_1,float *im_S_1,int t1,t_non *non,float *cr,float *ci, int *H_indices_si,int N_i);

@@ -17,6 +17,7 @@ float matrix_mul_traced_DA(float *A, float *B, int N_i, int N_i3);
 void complex_matrix_product(float *A_re, float *A_im, float *B_re, float *B_im, float *C_re, float *C_im,int N1,int N2,int N3);
 float find_norm(float *phi_r,float *phi_i,int N);
 void re_normalize(float *phi_r,float *phi_i,int N,float norm);
+float matrix_sum(float *matrix,int N);
 void log_item(char* msgFormat, ...);
 time_t set_time(time_t t0);
 time_t log_time(time_t t0,FILE *log);

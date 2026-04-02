@@ -15,7 +15,7 @@
 #include "mcfret.h"
 #include "mcfret4.h"
 
-
+/* Compute the UJJU matrix product */
 void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,int sj){
     int i1, i2, i3;
     float *intermediate_re, *intermediate_im;
@@ -40,18 +40,18 @@ void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,i
 #pragma omp parallel for
     for (i1=0;i1<N_i;i1++){
         for (i2=i1;i2<N_i;i2++){
-  	    // could include an if-statement, so as not to write the diagonal twice
-	    // no if-statement, as not including it will likely be faster (Check N^2 statements or write N floats)
+            // could include an if-statement, so as not to write the diagonal twice
+            // no if-statement, as not including it will likely be faster (Check N^2 statements or write N floats)
             for (i3=0;i3<N_i;i3++){
-		// elem = U_dag_re[i1*N_i+i3] * intermediate_re[i3*N_i+i2] - U_dag_im[i1*N_i+i3] * intermediate_im[i3*N_i+i2];
-		// use that U_dag_re[i1*N_i+i3] = U_re[i3*N_i+i1]
-		// use that U_dag_im[i1*N_i+i3] = - U_im[i3*N_i+i1]
-		
-		elem = U_re[i3*N_i+i1] * intermediate_re[i3*N_i+i2] + U_im[i3*N_i+i1] * intermediate_im[i3*N_i+i2];
+                // elem = U_dag_re[i1*N_i+i3] * intermediate_re[i3*N_i+i2] - U_dag_im[i1*N_i+i3] * intermediate_im[i3*N_i+i2];
+                // use that U_dag_re[i1*N_i+i3] = U_re[i3*N_i+i1]
+                // use that U_dag_im[i1*N_i+i3] = - U_im[i3*N_i+i1]
+            
+                elem = U_re[i3*N_i+i1] * intermediate_re[i3*N_i+i2] + U_im[i3*N_i+i1] * intermediate_im[i3*N_i+i2];
                 UJJU_re[i1*N_i+i2] += elem;
-            }
-    	    // write hermitian conjugate: real part identical
-	    UJJU_re[i2*N_i+i1] = UJJU_re[i1*N_i+i2];
+                }
+                // write hermitian conjugate: real part identical
+            UJJU_re[i2*N_i+i1] = UJJU_re[i1*N_i+i2];
     	}
     }
 
@@ -60,6 +60,7 @@ void compute_UJJU(float *UJJU_re, float *JJ, float *U_re, float *U_im, int N_i,i
     return;
 }
 
+/* Compute the J rho J  matrix product */
 void compute_JrhoJ(float *Jij_rho_jj_Jji, float* Jij, float *rho_0_sj, int N_i, int N_j, int sj){
     int j1,j2,j3,i,i1;
     int start_idx;
@@ -90,6 +91,7 @@ void compute_JrhoJ(float *Jij_rho_jj_Jji, float* Jij, float *rho_0_sj, int N_i, 
     return;
 }
 
+/* Compute the rho J J matrix product */
 void compute_rhoJJ(float *rho_ii_JijJji, float *JijJji, float* Jij, float *rho_0_si, int N_i, int N_j, int sj){
     int i1,i2,i3,j;
     int start_idx;
@@ -195,24 +197,24 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
     for (si=0;si<N_segments;si++){        
         N_i = find_H_indices_segment(non->psites, H_indices_si, si, non);
 	
-	/* Vectors representing time dependent states: real and imaginary part */
+	    /* Vectors representing time dependent states: real and imaginary part */
         float *U_re, *U_im;
-	U_re=(float *)calloc(N_i*N_i,sizeof(float));
-	U_im=(float *)calloc(N_i*N_i,sizeof(float));
+	    U_re=(float *)calloc(N_i*N_i,sizeof(float));
+	    U_im=(float *)calloc(N_i*N_i,sizeof(float));
         float *U_re_snap, *U_im_snap;
-	U_re_snap=(float *)calloc(N_i*N_i,sizeof(float));
-	U_im_snap=(float *)calloc(N_i*N_i,sizeof(float));
+	    U_re_snap=(float *)calloc(N_i*N_i,sizeof(float));
+	    U_im_snap=(float *)calloc(N_i*N_i,sizeof(float));
         float *work_re_si, *work_im_si;
         work_re_si =(float *)calloc(N_i*N_i,sizeof(float));
         work_im_si =(float *)calloc(N_i*N_i,sizeof(float));
 	
         
-	/* The segment si hamiltonian in upper triangle format */
+	    /* The segment si hamiltonian in upper triangle format */
         float *Hamiltonian_segment_triu;
 	
-	Hamiltonian_segment_triu = (float *)calloc((N_i+1)*N_i/2,sizeof(float));
+	    Hamiltonian_segment_triu = (float *)calloc((N_i+1)*N_i/2,sizeof(float));
 
-	// preset rho for the case where si is donor
+	    // preset rho for the case where si is donor
         float *rho_0_si;
         rho_0_si = (float *)calloc(N_i*N_i,sizeof(float));
         isolate_segment_Hamiltonian(rho_0, rho_0_si, H_indices_si,N_i,non);
@@ -285,61 +287,61 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
         for (samples=non->begin;samples<non->end;samples++){
             t_ref = samples*non->sample;
             // initialize the n_i * n_i propagator as a unit matrix
-	    unitmat(U_re,N_i);
+	        unitmat(U_re,N_i);
             clearvec(U_im,N_i*N_i);
  
-	    /* Loop over waiting time */
+	        /* Loop over waiting time */
             for (tw=0;tw<N_tw;tw++){
-		tj = t_ref+tw;
+		        tj = t_ref+tw;
                 /* Read Hamiltonian */
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
 		
             	// isolate the segment i with projection routine to obtain smaller matrix
-		// printf("N_i= %d\n",N_i);
-		isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_i, non);
+		        // printf("N_i= %d\n",N_i);
+		        isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_i, non);
 
-		// printf("Matrix sum U_re %f\n",matrix_sum(U_re,N_i));
-	    	// printf("Matrix sum U_im %f\n",matrix_sum(U_im,N_i));
+		        // printf("Matrix sum U_re %f\n",matrix_sum(U_re,N_i));
+	    	    // printf("Matrix sum U_im %f\n",matrix_sum(U_im,N_i));
 		
-		for (sj=0;sj<N_segments;sj++){
-		    // printf("Entering si sj loop over the waiting times si sj tw sample = %d %d %d %d\n",si,sj,tw,samples);
-		    if (si != sj){
-			// most expensive steps:
-			// calculate U_i_JijJji_Ui (twice ~ N_i^3)
-			// special subroutine that makes use of the fact that final product is hermitian
-			
-			// only the real part of UJJU is needed for the 4th order correction    
-			compute_UJJU(UJJU_re, JijJji + N_i*N_i * sj, U_re, U_im, N_i, sj);
+                for (sj=0;sj<N_segments;sj++){
+                    // printf("Entering si sj loop over the waiting times si sj tw sample = %d %d %d %d\n",si,sj,tw,samples);
+                    if (si != sj){
+                        // most expensive steps:
+                        // calculate U_i_JijJji_Ui (twice ~ N_i^3)
+                        // special subroutine that makes use of the fact that final product is hermitian
+                        
+                        // only the real part of UJJU is needed for the 4th order correction    
+                        compute_UJJU(UJJU_re, JijJji + N_i*N_i * sj, U_re, U_im, N_i, sj);
 
-		        // OPTION 1: immediately calculate the trace, not too expensive because of the special function and requires very little memory
-		        // Alternative is to keep the time dependent UJJU in memory, but that requires much more memory
+                            // OPTION 1: immediately calculate the trace, not too expensive because of the special function and requires very little memory
+                            // Alternative is to keep the time dependent UJJU in memory, but that requires much more memory
 
-			// calculate trace I (make use of special matrix product trace function, ~N_i^2 )
-			// here i is the donor segment
-			// (use subroutine, input 'rho J J.T' and 'UDJJUD')
-	                // printf("Matrix sum UJJU_re %f\n",matrix_sum(UJJU_re,N_i));
-			trace_I = matrix_mul_traced_DA(rho_ii_JijJji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        // calculate trace I (make use of special matrix product trace function, ~N_i^2 )
+                        // here i is the donor segment
+                        // (use subroutine, input 'rho J J.T' and 'UDJJUD')
+                                // printf("Matrix sum UJJU_re %f\n",matrix_sum(UJJU_re,N_i));
+                        trace_I = matrix_mul_traced_DA(rho_ii_JijJji + N_i*N_i*sj, UJJU_re, N_i, N_i);
 
-			//calculate trace II (make use of special matrix product trace function, ~N_i^2)
-			// here i is the acceptor segment
-			// (use subroutine, input 'J.T rho J' and 'UAJJUA')
-			trace_II = matrix_mul_traced_DA(Jij_rho_jj_Jji + N_i*N_i*sj, UJJU_re, N_i, N_i);
-			
-			// update trace I (rate i to j) at tw
-			all_traces[(si*2*N_segments + 2*sj+0)*N_tw+tw] += trace_I;
-			// update trace II (rate j to i) at tw
-			all_traces[(sj*2*N_segments + 2*si+1)*N_tw+tw] += trace_II;
-		    }
-		// printf("Closing the loop over segments sj\n");
-		}/* Closing loop over segment sj*/
+                        //calculate trace II (make use of special matrix product trace function, ~N_i^2)
+                        // here i is the acceptor segment
+                        // (use subroutine, input 'J.T rho J' and 'UAJJUA')
+                        trace_II = matrix_mul_traced_DA(Jij_rho_jj_Jji + N_i*N_i*sj, UJJU_re, N_i, N_i);
+                        
+                        // update trace I (rate i to j) at tw
+                        all_traces[(si*2*N_segments + 2*sj+0)*N_tw+tw] += trace_I;
+                        // update trace II (rate j to i) at tw
+                        all_traces[(sj*2*N_segments + 2*si+1)*N_tw+tw] += trace_II;
+                    }
+                // printf("Closing the loop over segments sj\n");
+                }/* Closing loop over segment sj*/
 
-             	// Propagate segment i (~N_i^3 process)
-		// only here is propagation of the hamiltonian performed
-		// propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tw*x, N_i);
-	    
-	        // try with new, special propagation routine
-            	time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
-            	propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
+                        // Propagate segment i (~N_i^3 process)
+                // only here is propagation of the hamiltonian performed
+                // propagate_matrix_segments(non,Hamiltonian_segment_triu,U_re,U_im,-1,samples,tw*x, N_i);
+                
+                    // try with new, special propagation routine
+                        time_evolution_mat_non_sparse(non, Hamiltonian_segment_triu, U_re_snap, U_im_snap, N_i);
+                        propagate_snapshot(U_re_snap, U_im_snap, &U_re, &U_im, &work_re_si, &work_im_si, N_i);
 	
 		
 	    }/* Closing loop over waiting time */
@@ -389,6 +391,7 @@ void compute_all_traces_4th_order(float *rho_0,float *J_full,t_non *non){
     return;
 }
 
+/* Store precalculated propagators in an array */
 void write_propagator_to_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti){
     // This storing of the propagator is used for both the real and imaginator parts of the propagators
     // dim1 = N_segments;
@@ -406,6 +409,7 @@ void write_propagator_to_big_array(float *big_array, float *propagator, int samp
     return;
 }
 
+/* Read precalculated propagators from an array */
 void read_propagator_from_big_array(float *big_array, float *propagator, int sample_length, int si, int N_site_si, int largest_segment_size, int ti){
     // This storing of the propagator is used for both the real and imaginator parts of the propagators
     // dim1 = N_segments;
@@ -424,6 +428,7 @@ void read_propagator_from_big_array(float *big_array, float *propagator, int sam
     return;
 }
 
+/*  Compute a particular matrix product as function of t1 to be reused */
 void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1, 
                              float *UDh_rho_J_UA_im_t1, 
                              float *UAh_Jh_rho_UD_re_t1, 
@@ -518,6 +523,7 @@ void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1,
     free(intermediate_im);
 }
 
+/* Compute a particular matrix product for reuse in the 3d time loop */ 
 void compute_4_intermediate_products(fourth_order_workspace *ws, fourth_order_params *p) {
     // calculate the intermediate products for this specific tw for all matrices for each t1
     // this saves matrix multiplications in the most nested 3d time loop.
@@ -611,6 +617,7 @@ void compute_4_intermediate_products(fourth_order_workspace *ws, fourth_order_pa
     free(intermediate_DA_im);
 }
 
+/* Calculate the 4th order rate between each segment pair */
 void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_4th_I, float *rate_matrix_4th_II, float *rate_matrix_2nd, int N_segments, int N_tw, t_non *non, float prefactor, int samples){
     // integrate the waiting time response for each segment combination 
     int si, sj, tw;
@@ -639,6 +646,7 @@ void compute_rate_from_4th_response(float *responses_4th_tw, float *rate_matrix_
     }
 }
 
+/* Compute the response function (as funcion of tw) for a single sample, for a single pair */
 void fourth_order_response_1_sample(fourth_order_params *p) {
     // compute the 4th order response for a single sample of the propagators
     // The inter-segment coupling matrix and donor density matrices can be based on many samples
@@ -1022,6 +1030,7 @@ void fourth_order_response_1_sample(fourth_order_params *p) {
     free(work_im_D);
 }
 
+/* Sum the four Feynman diagrams */
 void add_diagrams(float *diagram_1, float *diagram_2, float *diagram_3, float *diagram_4, float *diagram_1_s01, float *diagram_2_s01, float *diagram_3_s01, float *diagram_4_s01, int N_t1, int N_t2){
     // simply add the current diagrams to the specific ones to be written to a file for segments 0 and 1
     int i;
@@ -1234,12 +1243,12 @@ void full_4th_order_main(float *rho_0,float *J_full,t_non *non){
                 tj = t_ref+N_t1 + ti + 1; //+1 to ensure the +0 snapshot belongs to the t1 interval
                 write_propagator_to_big_array(big_propagator_array_tw_re,U_re,N_tw,si,N_site_si, N_site_max, ti);
                 write_propagator_to_big_array(big_propagator_array_tw_im,U_im,N_tw,si,N_site_si, N_site_max, ti);
-		// there is overlap between the tw and t2 intervals within a sample
-		// store the snapshots in the large t2 array
-		write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
+		        // there is overlap between the tw and t2 intervals within a sample
+		        // store the snapshots in the large t2 array
+		        write_propagator_to_big_array(big_propagator_array_t2_re,U_re_snap,times_N2,si,N_site_si, N_site_max, ti);
                 write_propagator_to_big_array(big_propagator_array_t2_im,U_im_snap,times_N2,si,N_site_si, N_site_max, ti);
 
-		/* Read Hamiltonian */
+		        /* Read Hamiltonian */
                 read_Hamiltonian(non,Hamil_i_e,H_traj,tj);
                 // isolate the segment i with projection routine to obtain smaller matrix
                 isolate_segment_Hamiltonian_triu(Hamil_i_e, Hamiltonian_segment_triu, H_indices_si, N_site_si, non);

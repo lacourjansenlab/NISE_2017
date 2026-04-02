@@ -128,6 +128,7 @@ void project_degeneracies(t_non* non,int *degen,int segments){
     return;    
 }
 
+/* Find the indices in site basis of all sites belonging to the indicated segment */
 int find_H_indices_segment(int *psites, int *H_indices_si,int si, t_non *non){
     // find the indices in the full system hamiltonian
     // for the indicated segment si such that this only needs to be done once
@@ -148,6 +149,7 @@ int find_H_indices_segment(int *psites, int *H_indices_si,int si, t_non *non){
     return n_i;
 }
 
+/* Isolate the segment hamiltonian in upper triangle format */
 void isolate_segment_Hamiltonian_triu(float *Hamiltonian_full_triu, float *Hamiltonian_segment_triu, int *H_indices_si, int N_i, t_non *non){
     int N, H_a, H_b, i, j;
     int  H_triu_full_idx, H_triu_full_idx_inter, H_triu_si_idx;
@@ -172,6 +174,7 @@ void isolate_segment_Hamiltonian_triu(float *Hamiltonian_full_triu, float *Hamil
     return;
 }
 
+/* Isolate the segment hamiltonian in full matrix format */
 void isolate_segment_Hamiltonian(float *Hamiltonian_full, float *Hamiltonian_segment, int *H_indices_si, int N_i, t_non *non){
     int N, H_a, H_b, i, j;
     N = non->singles;
@@ -187,6 +190,7 @@ void isolate_segment_Hamiltonian(float *Hamiltonian_full, float *Hamiltonian_seg
     return;
 }
 
+/* Isolate the inter-segment couplling Hamiltonian in full matrix format */
 void isolate_coupling_block(float *J_full, float *J_ij, int N_i, int N_j, int *H_indices_si, int *H_indices_sj, t_non *non){
     int N, H_a, H_b, i, j;
     N = non->singles;
@@ -203,6 +207,7 @@ void isolate_coupling_block(float *J_full, float *J_ij, int N_i, int N_j, int *H
     return;
 }
 
+/* Find the size of the largest segment in site counts. */
 int find_max_segment_size(int *psites, t_non *non){
     // analyse the projection to find the size of the largest segment
     int i, N, n_max;

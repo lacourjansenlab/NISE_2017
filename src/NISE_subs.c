@@ -262,6 +262,23 @@ void re_normalize(float *phi_r,float *phi_i,int N,float norm){
     }
 }
 
+/* For testing purposes */
+/* Find the sum of all matrix elements */
+float matrix_sum(float *matrix,int N){
+    int i,j;
+    float sum;
+    sum=0;
+    for (i=0;i<N;i++){
+        for (j=0;j<N;j++){
+            sum=sum+matrix[N*i+j];
+            // printf("element %f\n",matrix[N*i+j]);
+        }
+    }
+    return sum;
+}
+/* For testing purposes */
+
+
 /**
  * Method that logs a message, in which the message can be formatted like printf accepts.
  */

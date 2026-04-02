@@ -1299,7 +1299,7 @@ int time_evolution_mat(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, i
     return elements;
 }
 
-/* Create snapshot time-evolution operator for segment */
+/* Create snapshot time-evolution operator for a single segment */
 void time_evolution_mat_non_sparse(t_non* non, float* Hamiltonian_i, float* Ur, float* Ui, int Ni) {
     int N = Ni;
     float f = non->deltat * icm2ifs * (float)twoPi;
