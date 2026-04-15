@@ -87,6 +87,9 @@ typedef struct {
   int SingleShiftSites,*SingleShiftSite;
   float *SingleShift;
   int printLevel;
+  int useStokesShift;   /* 0=off (default), 1=on */
+  float *stokesSigma;     /* [singles], cm^-1 */
+  float *stokesLambda;    /* [singles], cm^-1 (computed from sigma, T) */
 } t_non;
 
 #define RESET   "\033[0m"
