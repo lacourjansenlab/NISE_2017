@@ -10,6 +10,7 @@
 #include "read_trajectory.h"
 #include "randomlib.h"
 #include "util/asprintf.h"
+#include <ctype.h>
 #include <cblas.h>
 
 // Subroutines for nonadiabatic code
@@ -910,4 +911,57 @@ void read_vector_from_file(char fname[],float *vector,int N){
         fscanf(file_handle,"%f",&vector[i]);
     }
     fclose(file_handle);
+}
+
+// Replace the extension of a filename if it matches the old extension, otherwise return NULL
+char *replace_ext(const char *filename,
+                  const char *old_ext,
+                  const char *new_ext)
+{
+    size_t len = strlen(filename);
+    size_t old_len = strlen(old_ext);
+    size_t new_len = strlen(new_ext);
+
+    if (len < old_len) return NULL;
+
+    // check if filename ends with old_ext
+    if (strcmp(filename + len - old_len, old_ext) != 0)
+        return NULL;
+
+    // allocate new string
+    size_t new_size = len - old_len + new_len + 1;
+    char *result = malloc(new_size);
+    if (!result) return NULL;
+
+    // copy base part
+    memcpy(result, filename, len - old_len);
+
+    // append new extension
+    memcpy(result + (len - old_len), new_ext, new_len);
+
+    // null terminate
+    result[new_size - 1] = '\0';
+
+    return result;
+}
+
+// Compare two strings ignoring case
+int strcmp_nocase(const char *s1, const char *s2)
+{
+    while (*s1 && *s2) {
+        unsigned char c1 = (unsigned char)*s1;
+        unsigned char c2 = (unsigned char)*s2;
+
+        c1 = (unsigned char)tolower(c1);
+        c2 = (unsigned char)tolower(c2);
+
+        if (c1 != c2)
+            return c1 - c2;
+
+        s1++;
+        s2++;
+    }
+
+    return (unsigned char)tolower((unsigned char)*s1)
+         - (unsigned char)tolower((unsigned char)*s2);
 }

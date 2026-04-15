@@ -55,7 +55,10 @@ void integrate_rate_response(float *rate_response,int T,float *is13,float *isimp
 void write_matrix_to_file(char fname[],float *matrix,int N);
 void read_vector_from_file(char fname[],float *vector,int N);
 void read_matrix_from_file(char fname[],float *matrix,int N);
-
+char *replace_ext(const char *filename,
+                  const char *old_ext,
+                  const char *new_ext);
+int strcmp_nocase(const char *s1, const char *s2);
 
 // Index triangular matrix
 // Put in the .h file to allow external referencing

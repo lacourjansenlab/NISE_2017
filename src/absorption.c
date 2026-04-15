@@ -178,16 +178,18 @@ void absorption(t_non *non){
   fclose(mu_traj),fclose(H_traj);
 
   /* Save time domain response */
-  outone=fopen("TD_Absorption.dat","w");
-  for (t1=0;t1<non->tmax1;t1+=non->dt1){
-    fprintf(outone,"%f ",t1*non->deltat);
-    for (ip=0;ip<pro_dim;ip++){
-      fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
+  if (strcmp(non->outputformat, "Normal") == 0) {
+    outone=fopen("TD_Absorption.dat","w");
+    for (t1=0;t1<non->tmax1;t1+=non->dt1){
+      fprintf(outone,"%f ",t1*non->deltat);
+      for (ip=0;ip<pro_dim;ip++){
+        fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
+      }
+      fprintf(outone,"\n");
     }
-    fprintf(outone,"\n");
+    fclose(outone);
   }
-  fclose(outone);
-
+  
   /* Do Forier transform and save */
   do_1DFFT(non,"Absorption.dat",re_S_1,im_S_1,samples);
 

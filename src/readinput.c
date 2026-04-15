@@ -43,6 +43,7 @@ void readInput(int argc, char* argv[], t_non* non) {
     sprintf(non->basis, "Local");
     sprintf(non->hamiltonian, "Full");
     sprintf(non->pbcFName, "");
+    sprintf(non->outputformat, "Normal");
 
     if (argc < 2) {
         printf(RED "Specify input file name on command line!\n");
@@ -99,6 +100,9 @@ void readInput(int argc, char* argv[], t_non* non) {
 
         // PBC file keyword
         if (keyWordS("PBCfile", Buffer, non->pbcFName, LabelLength) == 1) continue;
+
+        // Output format keyword
+        if (keyWordS("Outputformat", Buffer, non->outputformat, LabelLength) == 1) continue;
 
         // SingleShift file keyword
         if (keyWordS("SingleShiftfile", Buffer, non->singleShiftFName, LabelLength) == 1) continue;
