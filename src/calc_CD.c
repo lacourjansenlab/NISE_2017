@@ -34,7 +34,7 @@ void calc_CD(t_non *non){
   /* File handles */
   FILE *H_traj,*mu_traj,*pos_traj;
   FILE *C_traj;
-  FILE *outone,*log;
+  FILE *log;
   FILE *Cfile;
 
   /* Integers */
@@ -334,16 +334,8 @@ void calc_CD(t_non *non){
     fclose(Cfile);
   }
 
-  outone=fopen("TD_CD.dat","w");
-  for (t1=0;t1<non->tmax1;t1+=non->dt1){
-/*    fprintf(outone,"%f %e %e\n",t1*non->deltat,re_S_1[t1]/samples,im_S_1[t1]/samples); */
-      fprintf(outone,"%f ",t1*non->deltat);
-      for (ip=0;ip<pro_dim;ip++){
-         fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
-      }
-      fprintf(outone,"\n");
-  }
-  fclose(outone);
+  // Save response function
+  save_time_domain_response(non,"TD_CD.dat",re_S_1,im_S_1,pro_dim,samples);
 
   /* Do Forier transform and save */
   do_1DFFT(non,"CD.dat",re_S_1,im_S_1,samples);
