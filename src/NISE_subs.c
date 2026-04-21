@@ -966,3 +966,41 @@ int strcmp_nocase(const char *s1, const char *s2)
     return (unsigned char)tolower((unsigned char)*s1)
          - (unsigned char)tolower((unsigned char)*s2);
 }
+
+/* Save linear response function to file */
+int save_time_domain_response(t_non *non,const char *filename,float *re_S_1,float *im_S_1,int pro_dim,int samples){
+    int ip, t1;
+    float time,re,im;
+    FILE *outone;
+    if (strcmp_nocase(non->outputformat, "Normal")==0) {
+        outone=fopen(filename,"w");
+        for (t1=0;t1<non->tmax1;t1+=non->dt1){
+            fprintf(outone,"%f ",t1*non->deltat);
+            for (ip=0;ip<pro_dim;ip++){
+                fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
+            }
+            fprintf(outone,"\n");
+        }
+        fclose(outone);
+        return 0;
+    } else if (strcmp_nocase(non->outputformat, "Binary")==0) {
+        char *binary_fname = replace_ext(filename, ".dat", ".bin");
+        outone=fopen(binary_fname,"wb");
+        for (t1=0;t1<non->tmax1;t1+=non->dt1){
+            time=t1*non->deltat;
+            fwrite(&time,sizeof(float),1,outone);
+            for (ip=0;ip<pro_dim;ip++){
+                re=re_S_1[t1+ip*non->tmax]/samples;
+                im=im_S_1[t1+ip*non->tmax]/samples;
+                fwrite(&re,sizeof(float),1,outone);
+                fwrite(&im,sizeof(float),1,outone);
+            }
+        }
+        fclose(outone);
+        return 0;
+    } else {
+        printf("\n");
+        printf("To store response function use OutputFormat Normal or Binary.\n\n");
+    }
+    return 0;
+}

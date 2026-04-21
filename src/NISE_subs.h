@@ -59,6 +59,8 @@ char *replace_ext(const char *filename,
                   const char *old_ext,
                   const char *new_ext);
 int strcmp_nocase(const char *s1, const char *s2);
+int save_time_domain_response(t_non *non,const char *filename,float *re_S_1,
+    float *im_S_1,int prodim,int samples);
 
 // Index triangular matrix
 // Put in the .h file to allow external referencing

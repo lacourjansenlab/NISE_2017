@@ -208,14 +208,18 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
   }
 
   // For normal setting save as text file
-  if (strcmp(non->outputformat, "Normal") == 0) {
+  if (string_in_array(non->outputformat,(char*[]){"Normal","Compact"},2)){
     outone=fopen(fname,"w");
     for (i=fft/2;i<=fft-1;i++){
       if (-((fft-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((fft-i)/non->deltat/c_v/fft-shift1)<non->max1){
 //        fprintf(outone,"%f %e %e\n",-((fft-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
         fprintf(outone,"%f ",-((fft-i)/non->deltat/c_v/fft-shift1));
         for (ip=0;ip<pro_dim;ip++){
-          fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          if (strcmp_nocase(non->outputformat,"Normal") ==0){
+            fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          } else {
+            fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
+          }
         }
         fprintf(outone,"\n");
       }
@@ -225,7 +229,11 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
 //        fprintf(outone,"%f %e %e\n",-((-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
         fprintf(outone,"%f ",-((-i)/non->deltat/c_v/fft-shift1));
         for (ip=0;ip<pro_dim;ip++){
-          fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          if (strcmp_nocase(non->outputformat,"Normal") ==0){
+            fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          } else {
+            fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
+          }
         }
         fprintf(outone,"\n");
       }
@@ -233,7 +241,7 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
   }
 
   // For absorption setting save as binary file
-  if (strcmp_nocase(non->outputformat, "Binary") == 0) {
+  if (string_in_array(non->outputformat,(char*[]){"Binary","CompactBinary"},2)){
     char *binary_fname = replace_ext(fname, ".dat", ".bin");
     outone=fopen(binary_fname,"wb");
     for (i=fft/2;i<=fft-1;i++){
@@ -242,7 +250,9 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
         fwrite(&freq, sizeof(float), 1, outone);
         for (ip=0;ip<pro_dim;ip++){
           fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
-          fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          if (strcmp_nocase(non->outputformat,"Binary")==0){
+            fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          }
         }
       }
     }
@@ -252,7 +262,9 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
         fwrite(&freq, sizeof(float), 1, outone);
         for (ip=0;ip<pro_dim;ip++){
           fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
-          fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          if (strcmp_nocase(non->outputformat,"Binary")==0){
+            fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          }
         }
       }
     }
