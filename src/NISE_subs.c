@@ -317,13 +317,14 @@ time_t log_time(time_t t0, FILE* log) {
 }
 
 /* Compare a string to an array of options */
+/* The comparizon is not case sensitive */
 int string_in_array(char* string_to_compare, char* string_array[], int array_size) {
     for (int i = 0; i < array_size; i++) {
-        if (!strcmp(string_to_compare, string_array[i])) {
+        if (!strcmp_nocase(string_to_compare, string_array[i])) {
             return i+1; // return the index of the matched string
 	    }
     }
-    return 0; // if no match is found, return -1
+    return 0; // if no match is found, return 0
 }
 
 /* Determine number of samples to use and write to log file */
