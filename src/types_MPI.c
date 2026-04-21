@@ -8,7 +8,7 @@
 // The T_NON_TYPE variable is declared as const to prevent modification and ensure that it is only initialized once.
 
 const t_non_datatype T_NON_TYPE = {
-    69,
+    70,
     {
         1, 1, 1,
         1, 1, 1,
@@ -25,7 +25,7 @@ const t_non_datatype T_NON_TYPE = {
         256, 256, 256, 256,
         256, 256, 256, 256,
         256, 256, 256, 256,
-        256,
+        256, 256,
         1,
         1,
         1, 1,
@@ -55,7 +55,7 @@ const t_non_datatype T_NON_TYPE = {
         MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR,
         MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR,
         MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR,
-        MPI_CHAR,
+        MPI_CHAR, MPI_CHAR,
         MPI_INT,
         MPI_INT,
         MPI_FLOAT, MPI_FLOAT,
@@ -85,7 +85,7 @@ const t_non_datatype T_NON_TYPE = {
         offsetof(t_non, energyFName), offsetof(t_non, dipoleFName), offsetof(t_non, alphaFName),offsetof(t_non, positionFName),
         offsetof(t_non, anharFName), offsetof(t_non, overdipFName), offsetof(t_non, singleShiftFName), offsetof(t_non, technique),
         offsetof(t_non, pdbFName), offsetof(t_non, basis), offsetof(t_non, hamiltonian), offsetof(t_non, couplingFName),
-        offsetof(t_non, pbcFName),
+        offsetof(t_non, pbcFName), offsetof(t_non, outputformat),
         offsetof(t_non, tmax),
         offsetof(t_non, cluster),
         offsetof(t_non, shifte), offsetof(t_non, shiftf),
