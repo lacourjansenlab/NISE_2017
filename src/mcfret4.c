@@ -489,7 +489,7 @@ void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1,
     UA_im=(float *)calloc(N_A*N_A,sizeof(float));    
 
     // first compute the constant rho_J
-#pragma omp parallel for
+#pragma omp parallel for private(i1, i2, i3, temp)
     for (i1=0;i1<N_D;i1++){
         for (i3=0;i3<N_D;i3++){
             temp = rho0_D[i1*N_D+i3];
@@ -502,16 +502,16 @@ void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1,
     // loop over the first coherence interval
     for (t1=0;t1<N_t1;t1++){
         // read the precalculated t1 unitary propagators of the Donor and Acceptor 
-	    read_propagator_from_big_array(U_re_t1_array, UD_re, N_t1, s_D, N_D, largest_segment_size, t1);
-	    read_propagator_from_big_array(U_im_t1_array, UD_im, N_t1, s_D, N_D, largest_segment_size, t1);
+	read_propagator_from_big_array(U_re_t1_array, UD_re, N_t1, s_D, N_D, largest_segment_size, t1);
+	read_propagator_from_big_array(U_im_t1_array, UD_im, N_t1, s_D, N_D, largest_segment_size, t1);
         read_propagator_from_big_array(U_re_t1_array, UA_re, N_t1, s_A, N_A, largest_segment_size, t1); 
         read_propagator_from_big_array(U_im_t1_array, UA_im, N_t1, s_A, N_A, largest_segment_size, t1); 
         hermitian_conjugate(UD_re, UD_im, UD_h_re, UD_h_im, N_D, N_D);
         
         clearvec(intermediate_re, N_A * N_D);
         clearvec(intermediate_im, N_A * N_D);
-            // compute UDh_rho_J at this timestep
-        #pragma omp parallel for
+        // compute UDh_rho_J at this timestep
+	#pragma omp parallel for private(i1, i2, i3, temp)        
                 for (i2=0;i2<N_A;i2++){	 
                     for (i3=0;i3<N_D;i3++){
                         temp = rho_J[i3*N_A+i2];
@@ -522,8 +522,8 @@ void compute_UDh_rho_J_UA_t1(float *UDh_rho_J_UA_re_t1,
                     }
             }
 
-        #pragma omp parallel for
-                for (i1=0;i1<N_D;i1++){
+        #pragma omp parallel for private(i1, i2, i3)
+		for (i1=0;i1<N_D;i1++){
                     for (i2=0;i2<N_A;i2++){
                         for (i3=0;i3<N_A;i3++){
                             UDh_rho_J_UA_re_t1[t1*N_A*N_D + i1*N_A+i2] += intermediate_re[i1*N_A+i3] * UA_re[i3*N_A+i2] - intermediate_im[i1*N_A+i3] * UA_im[i3*N_A+i2];
