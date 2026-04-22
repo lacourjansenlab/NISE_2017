@@ -95,24 +95,53 @@ Front cover:
 %\tableofcontents
 
 \chapter{Introduction}
-The main developer of the NISE3 code is Thomas la Cour Jansen. Please, cite the appropriate
-references 
+The main developer of the NISE3 code is Thomas la Cour Jansen. Please, cite the
+appropriate references 
 \cite{Jansen.2006.JPCB.110.22910,Jansen.2009.ACR.42.1405,Jansen.2010.JCP.132.224503,Liang.2012.JCTC.8.1706,Liang.2013.JPCL.4.448}
-when publishing work using this code. The code allows the calculation of the linear absorption,linear dichroism, sum-frequency generation, two-dimensional spectra (IR,UVvis, and SFG), population transfer, exciton diffusion and integrated anisotropy using the full nonadiabatic semi-classical numerical integration of the Schr\"{o}dinger equation approach
-\cite{Jansen.2009.ACR.42.1405} and the sparse matrix optimization approach \cite{Liang.2012.JCTC.8.1706}. The code allows treating spectra of diverse systems involving
-intra- and intermolecular energy transfer\cite{Jansen.2006.JPCB.110.22910,Cringus.2007.JCP.127.084507,Jansen.2008.BJ.94.1818,Dijkstra.2010.JPCA.114.7315,Jansen.2010.JCP.132.224503}, non-Gaussian dynamics \cite{Jansen.2009.JPCA.113.6260,Roy.2011.JPCB.115.5431}, surfaces \cite{Liang.2013.JPCL.4.448}, and chemical exchange \cite{Jansen.2007.JCP.127.234502}. This manual is not intended as an introduction to two-dimensional
-spectroscopy. The user is directed to the references including recent reviews \cite{Hamm.1998.JPCB.102.6123,Hochstrasser.2001.CP.266.273,Cho.2008.CR.108.1331,Mukamel.2000.ARPC.51.691,Jansen.2009.ACR.42.1405} and books
-for more information \cite{Cho.2009.B01,Mukamel.1995.B01,Hamm.2011.B01}.
+when publishing work using this code. The code allows the calculation of the linear
+absorption,linear dichroism, sum-frequency generation, two-dimensional spectra
+(IR,UVvis, and SFG), population transfer, exciton diffusion and integrated anisotropy
+using the full nonadiabatic semi-classical numerical integration of the Schr\"{o}dinger
+equation approach
+\cite{Jansen.2009.ACR.42.1405} and the sparse matrix optimization approach
+\cite{Liang.2012.JCTC.8.1706}. The code allows treating spectra of diverse systems
+involving intra- and intermolecular energy transfer
+\cite{Jansen.2006.JPCB.110.22910,Cringus.2007.JCP.127.084507,Jansen.2008.BJ.94.1818,Dijkstra.2010.JPCA.114.7315,Jansen.2010.JCP.132.224503}, non-Gaussian dynamics \cite{Jansen.2009.JPCA.113.6260,Roy.2011.JPCB.115.5431}, surfaces \cite{Liang.2013.JPCL.4.448}, and chemical exchange \cite{Jansen.2007.JCP.127.234502}.
+This manual is not intended as an introduction to two-dimensional
+spectroscopy. The user is directed to the references including recent reviews
+\cite{Hamm.1998.JPCB.102.6123,Hochstrasser.2001.CP.266.273,Cho.2008.CR.108.1331,Mukamel.2000.ARPC.51.691,Jansen.2009.ACR.42.1405}
+and books for more information \cite{Cho.2009.B01,Mukamel.1995.B01,Hamm.2011.B01}.
 
-The code is made available as open source on github.com as link {\tt GHlacour/NISE\_2017}. The version available is intended to be friendly for developers to contribute improvements. Changes in the code are at own risk and should be reported clearly in publications. Developers wanting to contribute to the official version of the code are suggested to contact the main developer in advance to ensure that the contribution is not conflicting with that of other developers. More information for developers is given in Chapter \ref{chap:developers}. Feedback on the program and the manual are welcome via e-mail: t.l.c.jansen@rug.nl. 
+The code is made available as open source on github.com as link
+{\tt GHlacour/NISE\_2017}. The version available is intended to be friendly for
+developers to contribute improvements. Changes in the code are at own risk and should
+be reported clearly in publications. Developers wanting to contribute to the official
+version of the code are suggested to contact the main developer in advance to ensure
+that the contribution is not conflicting with that of other developers. More
+information for developers is given in Chapter \ref{chap:developers}. Feedback on the
+program and the manual are welcome via e-mail: t.l.c.jansen@rug.nl. 
 
-Current developers include: Thomas la Cour Jansen (main developer), Floris Westerman (cmake and MPI implementation), and members of the Computational Spectroscopy group at the University of Groningen.
+Current developers include: Thomas la Cour Jansen (main developer), Ana Cunha (GPU),
+Floris Westerman (cmake and MPI implementation), and members of the Computational
+Spectroscopy group at the University of Groningen.
 
-%The code use wavenumbers (cm$^{-1}$) for frequencies and times are femtoseconds (fs). The transition dipoles and transition polarizabilities may be given in any desired units in most cases, but Debye is recommended for transition dipoles and required for the coupling on the fly methods. Distances in that case should be given in Ångstrøm.
+%The code use wavenumbers (cm$^{-1}$) for frequencies and times are femtoseconds (fs).
+%The transition dipoles and transition polarizabilities may be given in any desired
+%units in most cases, but Debye is recommended for transition dipoles and required
+%for the coupling on the fly methods. Distances in that case should be given in Ångstrøm.
 
-The code use wavenumbers (cm$^{-1}$) for frequencies and times are in femtoseconds (fs).  The transition dipoles should preferably be given in Debye and transition polarizabilities in \AA$^{3}$.  For using the on-the-fly coupling calculations the transition dipoles should be provided in Debye and positions should be provided in \AA ngstr\"{o}m. Users are discouraged from trying to use other units at this may lead to numerical instabilities or unit conversion errors. The final results will scale accordingly.
+The code use wavenumbers (cm$^{-1}$) for frequencies and times are in femtoseconds (fs).
+The transition dipoles should preferably be given in Debye and transition
+polarizabilities in \AA$^{3}$. For using the on-the-fly coupling calculations and
+non-radiative lifetime calculation the transition dipoles should be provided in Debye
+and positions should be provided in \AA ngstr\"{o}m. Users are discouraged from trying
+to use other units at this may lead to numerical instabilities or unit conversion
+errors. The final results will scale accordingly. For energy transfer rates the code
+uses picoseconds (ps$^{-1}$).
 
-In this manual keywords used in the NISE input files are highlighted as \ilk{Keyword}. Variables defined with these keywords are highlighted as \ilo{variable}. Code to be typed in the linux command line or to be used in a script is highlighted as \ilc{code}.
+In this manual keywords used in the NISE input files are highlighted as \ilk{Keyword}.
+Variables defined with these keywords are highlighted as \ilo{variable}. Code to be
+typed in the linux command line or to be used in a script is highlighted as \ilc{code}.
 
 \include{installation}
 
@@ -125,10 +154,15 @@ In this manual keywords used in the NISE input files are highlighted as \ilk{Key
 \include{developers}
 
 \chapter{Acknowledgement}
-The following people are kindly acknowledged for their contribution through helpful discussions, ideas, and feedback:
-Foppe de Haan, Arend Dijkstra, Alexander Paarmann, Carsten Olbrich, Jim Skinner and his group, Lu Wang, Carlos Baiz, Chungwen Liang, Santanu Roy, Ana V. Cunha, Andy Sardjan, and Ariba Javad. 
+The following people are kindly acknowledged for their contribution through helpful
+discussions, ideas, and feedback: Foppe de Haan, Arend Dijkstra, Alexander Paarmann,
+Carsten Olbrich, Jim Skinner and his group, Lu Wang, Carlos Baiz, Chungwen Liang,
+Santanu Roy, Ana V. Cunha, Remco Havenith, Andy Sardjan, and Ariba Javad. 
 
-The NWO is gratefully acknowledged for financial support making is possible to write the initial versions of this code through VENI and VIDI grants. 
+The NWO is gratefully acknowledged for financial support making is possible to write
+the initial versions of this code through VENI and VIDI grants. This project has
+received funding from the European Union’s Horizon Europe Research and Innovation
+Program under the Marie Skłodowska-Curie grant agreement No 101119442.
  
 \bibliography{Merged2016}
 

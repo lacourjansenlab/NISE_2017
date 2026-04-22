@@ -46,69 +46,118 @@ The translate program converts between different formats. The program also allow
 \end{description}
 
 \subsection{File formats}
-GROBIN is the binary format needed for use with the NISE program. This contains information on the energy of both singly and doubly excited states and allows for fluctuating anharmonicities.
-GROASC is a text readable format.
-MITASC and MITTXT are text formats used by the MIT static spectrum code.
-SKIBIN is a binary format used by the Skinner group. It contain the singly excited states and a
-separate file for fluctuating anharmonicities and a file for fluctuating overtone transition dipoles.
-SPECTRON is a text format used by the Mukamel group SPECTRON code.
+\begin{description}
+\item[GROBIN] [is the binary format needed for use with the NISE program. This contains
+information on the energy of both singly and doubly excited states and allows for
+fluctuating anharmonicities.]
+\item[GROASC] [is a text readable format.]
+\item[MITASC and MITTXT] [ are text formats used by the MIT static spectrum code.]
+\item[SKIBIN] [is a binary format used by the Skinner group. It contain the singly excited states and a
+separate file for fluctuating anharmonicities and a file for fluctuating overtone transition dipoles.]
+\item[SPECTRON] [is a text format used by the Mukamel group SPECTRON code.]
+\end{description}
 The GROBIN format is the only format that allows storing the doubly excited states Hamiltonian. This will be generated automatically using harmonic rules and the anharmonicity given by the Anharmonicity keyword.
 
 \noindent
 \underline{GROBIN and SKIBIN:}\\
 The GROBIN and SKIBIN formats are very similar.
 The energy file has the following format.
-For each snapshot in the trajectory they contain first an integer typically containing the number of the snapshot. This integer is not used in the calculation, but can be used for control purposes.
-Then the single excited Hamiltonian is given in floats as a tridiagonal upper matrix. For the GROBIN
-format the double excited Hamiltonian might be provided afterwards again in a tridiagonal upper matrix.
+For each snapshot in the trajectory they contain first an integer typically containing
+the number of the snapshot. This integer is not used in the calculation, but can be
+used for control purposes.
+Then the single excited Hamiltonian is given in floats as a tridiagonal upper matrix.
+%For the GROBIN format the double excited Hamiltonian might be provided afterwards
+%again in a tridiagonal upper matrix.
 
 The dipole file has the following format.
-For each snapshot in the trajectory they contain first an integer typically containing the number of the snapshot. This integer is not used in the calculation, but can be used for control purposes.
-Then the x components of the transition dipole matrix are given in floats, followed by the y and z components. For the GROBIN format the transition dipole matrix for the single to double transitions may then be given, again with the x components given first. In Figure \ref{fig:filestructure} the format of the file is also illustrated.
+For each snapshot in the trajectory they contain first an integer typically containing
+the number of the snapshot. This integer is not used in the calculation, but can be
+used for control purposes. Then the x components of the transition dipole matrix are
+given in floats, followed by the y and z components. For the GROBIN format the
+transition dipole matrix for the single to double transitions may then be given, again
+with the x components given first. In Figure \ref{fig:filestructure} the format of the
+file is also illustrated.
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=10cm]{file_structure.pdf}
 \end{center}
-\caption{\label{fig:filestructure}The file structure for the dipole, and position files. For the extended dipole position file first all x-components of the first set sites are given and then all x-components of the second set of sites.}
+\caption{\label{fig:filestructure}The file structure for the dipole, and position files.
+For the extended dipole position file first all x-components of the first set sites are
+given and then all x-components of the second set of sites.}
 \end{figure}
 
 The anharmonicity file is only given in the SKIBIN format.
-For each snapshot in the trajectory they contain first an integer typically containing the number of the snapshot. This integer is not used in the calculation, but can be used for control purposes.
-Then the diagonal anharmonicities are then given in floats.
+For each snapshot in the trajectory they contain first an integer typically containing
+the number of the snapshot. This integer is not used in the calculation, but can be
+used for control purposes. Then the diagonal anharmonicities are then given in floats.
 
 The overtone file is only given in the SKIBIN format.
-For each snapshot in the trajectory they contain first an integer typically containing the number of the snapshot. This integer is not used in the calculation, but can be used for control purposes.
-Then the overtone transition dipoles are then given in floats. Only the same site overtone transition dipoles are given. Transitions like $\langle 1\mid\mu\mid 12\rangle$ are determined by the harmonic rules.
+For each snapshot in the trajectory they contain first an integer typically containing
+the number of the snapshot. This integer is not used in the calculation, but can be
+used for control purposes. Then the overtone transition dipoles are then given in
+floats. Only the same site overtone transition dipoles are given. Transitions like
+$\langle 1\mid\mu\mid 12\rangle$ are determined by the harmonic rules.
 
 The transition polarizability file which is not available in the SKIBIN format 
-has the following format. For each snapshot in the trajectory they contain first an integer 
-typically containing the number of the snapshot. This integer is not used in the calculation, 
-but can be used for control purposes. Then the xx components of the transition polarizability
-matrix are given in floats, followed by the xy, xz, yy, yz, and zz components. 
+has the following format. For each snapshot in the trajectory they contain first an
+integer typically containing the number of the snapshot. This integer is not used in
+the calculation,  but can be used for control purposes. Then the xx components of the
+transition polarizability matrix are given in floats, followed by the xy, xz, yy, yz,
+and zz components. 
 
-The position files are available in the GROBIN format and used to store either the center positions of the chromophores or the positions of the two sites in each chromophore defining the extended dipole coupling. This file is used when calculating CD spectra, excition diffusion, or when using the on-the-fly coupling calculations. The structure of the file is as for the dipole files (see Figure \ref{fig:filestructure}).
+The position files are available in the GROBIN format and used to store either the
+center positions of the chromophores or the positions of the two sites in each
+chromophore defining the extended dipole coupling. This file is used when calculating
+CD spectra, excition diffusion, or when using the on-the-fly coupling calculations.
+The structure of the file is as for the dipole files (see Figure
+\ref{fig:filestructure}).
 
 \noindent
 \underline{GROASC:}\\
-The energy file contain one Hamiltonian snapshot for each line. The upper tridiagonal matrix is saved and each number is separated by a space. The transition dipoles are stored in one file. Each line contains one snapshot with the numbers separated by a space. All the x components for one snapshot are stored first followed by the y and z components. Only the single excitation Hamiltonian and the transition dipoles from the ground state to the singly excited state are saved.
+The energy file contain one Hamiltonian snapshot for each line. The upper tridiagonal
+matrix is saved and each number is separated by a space. The transition dipoles are
+stored in one file. Each line contains one snapshot with the numbers separated by a
+space. All the x components for one snapshot are stored first followed by the y and z
+components. Only the single excitation Hamiltonian and the transition dipoles from the
+ground state to the singly excited state are saved.
 
 \noindent
 \underline{MITASC:}\\
-The energy file contain one Hamiltonian snapshot for each line. The whole square matrix is saved and each number is separated by a tab. The transition dipoles are stored in one file for each cartesian component. Each line contains one snapshot with the numbers separated by a tab. Only the single excitation Hamiltonian and the transition dipoles from the ground state to the singly excited state are saved.
+The energy file contain one Hamiltonian snapshot for each line. The whole square matrix
+is saved and each number is separated by a tab. The transition dipoles are stored in
+one file for each cartesian component. Each line contains one snapshot with the numbers
+separated by a tab. Only the single excitation Hamiltonian and the transition dipoles
+from the ground state to the singly excited state are saved.
 
 \noindent
 \underline{MITTXT:}\\
-The energy file contain one row of the Hamiltonian snapshot for each line. The whole square matrix is saved and each number is separated by a space. Snapshots are separated by an empty line. The transition dipoles are stored in one file for each cartesian component. Each line contains the cartesian coordinates of one transition dipole. The numbers separated by a space. Snapshots are separated by an empty line. Only the single excitation Hamiltonian and the transition dipoles from the ground state to the singly excited state are saved.
+The energy file contain one row of the Hamiltonian snapshot for each line. The whole
+square matrix is saved and each number is separated by a space. Snapshots are separated
+by an empty line. The transition dipoles are stored in one file for each cartesian
+component. Each line contains the cartesian coordinates of one transition dipole.
+The numbers separated by a space. Snapshots are separated by an empty line. Only the
+single excitation Hamiltonian and the transition dipoles from the ground state to the
+singly excited state are saved.
 
 \noindent
 \underline{SPECTRON:}\\
-In the energy file each snapshot is stored after a line containing the word SNAPSHOT and the number
-of the snapshot (starting from 1). After this the upper tridiagonal matrix of the Hamiltonian snapshot is stored with one row on each line. The numbers are separated by a space. The dipole file also contain a line with the word SNAPSHOT and the number of that snapshot. This is followed by the transition dipoles stored with the x, y and z components for each site on one line separated by a space. Only the single excitation Hamiltonian and the transition dipoles from the ground state to the singly excited state are saved.
+In the energy file each snapshot is stored after a line containing the word SNAPSHOT
+and the number of the snapshot (starting from 1). After this the upper tridiagonal
+matrix of the Hamiltonian snapshot is stored with one row on each line. The numbers
+are separated by a space. The dipole file also contain a line with the word SNAPSHOT
+and the number of that snapshot. This is followed by the transition dipoles stored
+with the x, y and z components for each site on one line separated by a space. Only
+the single excitation Hamiltonian and the transition dipoles from the ground state to
+the singly excited state are saved.
 
 
 \subsection{NISE (Full nonadiabatic simulation)}
-The nonadiabatic linear and third-order response can be simulated with the 'NISE' program utilizing the numerical integration of the Schr\"odinger equation (NISE) approach\cite{Jansen.2006.JPCB.110.22910,Jansen.2009.ACR.42.1405}. The sparse and double excited state propagation is described in Ref. \citenum{Jansen.2010.JCP.132.224503}.
-The coupling propagation scheme is described in Ref. \citenum{Liang.2012.JCTC.8.1706}. The parallelization of the code is described in Ref. \citenum{Sardjan.2020.J.Phys.Chem.B.124.9420}.
+The nonadiabatic linear and third-order response can be simulated with the 'NISE'
+program utilizing the numerical integration of the Schr\"odinger equation (NISE)
+approach \cite{Jansen.2006.JPCB.110.22910,Jansen.2009.ACR.42.1405}. The sparse and
+double excited state propagation is described in Ref. \citenum{Jansen.2010.JCP.132.224503}.
+The coupling propagation scheme is described in Ref. \citenum{Liang.2012.JCTC.8.1706}.
+The parallelization of the code is described in Ref. \citenum{Sardjan.2020.J.Phys.Chem.B.124.9420}.
 The program require the Hamiltonian trajectory in binary format.
 The NISE program use the following input:\\
 \begin{description}
@@ -154,18 +203,24 @@ states as implemented in the Sparse propagation scheme, 5 is recommended in that
 \item [BeginPoint] [The number of the first sample calculated in this run]
 \item [EndPoint] [The number of the last sample calculated in this run, if this keyword is left out all samples will be included]
 \item [Project] (Should be followed by either two new lines specifying the sites to project on directly in the file or one line specifying the filename of a file to read the site numbers from. In the first case the first line should read Sites [Number] identifying how many sites are included in the projection and the second line with a list of integer numbers identifying the sites included counting from zero. In the other case the following line should read \textbf{Projectfile} [Name], where the file named [Name] contain the number of sites on the first line and then a list of the site numbers. For MCFRET the project file is instead used to specify to which segment each site belongs. In this case the number of sites must be equal to the number of singles.)
+\item [Cluster] [Cluster number] Allows using only samples where the starting point belongs to the specific cluster specified in the Cluster.bin file.
 \item[Basis] [Site / Adiabatic / Average] The options for the basis to use in population transfer calculations. The standard option is the site basis.
+\item[Outputformat] [ Normal (default) / Compact / Binary / CompactBinary ] Allows writing linear response output in a binary format to save space. Space can also be saved by not storing the imaginary part of the response (Compact).
 \item [PrintLevel] [0 / 1 / 2 ] (Default is 0, the higher number the more detailed (timing) info is given.)
 \end{description}
 
-The minimum and maximum frequencies are used for two things. First, the average of minw1 and maxw1 are used to shift the frequencies during the simulation. By shifting all transitions by the
-average the oscillations of the time-evolution are reduced and the simulations can be performed with
-longer distance between the time points. Second, the output is reduced to frequencies within the
-min and the max which reduce file size.
+The minimum and maximum frequencies are used for two things. First, the average of
+minw1 and maxw1 are used to shift the frequencies during the simulation. By shifting
+all transitions by the average the oscillations of the time-evolution are reduced and
+the simulations can be performed with longer distance between the time points. Second,
+the output is reduced to frequencies within the min and the max which reduce file size.
 
 The Lifetime is only applied during the coherence times ($t_1$ and $t_3$ ) according 
-to the formula in Ref. \citenum{Liang.2012.JCTC.8.1706}. The waiting time dependence can trivially be accounted for by 
-multiplying the whole spectrum with $\exp( -t_2 /T_1 )$. For apodization with an exponential or gaussian function the Homogeneous and Inhomogenious keywords are used. These only change the final spectra and not the response functions. The equations used are
+to the formula in Ref. \citenum{Liang.2012.JCTC.8.1706}. The waiting time dependence
+can trivially be accounted for by  multiplying the whole spectrum with
+$\exp( -t_2 /T_1 )$. For apodization with an exponential or gaussian function the
+Homogeneous and Inhomogenious keywords are used. These only change the final spectra
+and not the response functions. The equations used are
 \begin{equation}
 R'(t)=R(t)\exp\left(-t/2 t_{\textrm{homo}}-t^2/2 t_{\textrm{inhomo}}^2\right)
 \end{equation}
@@ -178,85 +233,161 @@ for rephasing signals and
 R'(t_1,t_2,t_3)=R(t_1,t_2,t_3)
 \exp\left(-(t_1+t_3)/2 t_{\textrm{homo}}-(t_1+t_3)^2/2 t_{\textrm{inhomo}}^2\right)
 \end{equation}
-for non-rephasing signals. As default no apodization is performed. The apodizations are inactive when set to zero.  
-A Hann window function can also be applied by defining the keyword Window Hann. The Hann function corresponds to multiplying with the square of a cosine damping the signal from one to zero over the interval from zero coherence time to the maximal coherence time.
+for non-rephasing signals. As default no apodization is performed. The apodizations
+are inactive when set to zero. A Hann window function can also be applied by defining
+the keyword Window Hann. The Hann function corresponds to multiplying with the square
+of a cosine damping the signal from one to zero over the interval from zero coherence
+time to the maximal coherence time.
 
-The HamiltonianType allow the use of different ways to store the Hamiltonian trajectories. The default setting is Full, where the full Hamiltonian is given in the Hamiltonianfile, if Coupling is specified the couplings are assumed to be constant and given in the Couplingfile. The Hamiltonianfile then contain the trajectory of fluctuating diagonal elements. If TransitionDipole is specified the couplings are calculated on the fly using the transition-dipole coupling scheme. The chromophore positions must then be provided in the Positionfile and the transition-dipoles in the Dipolefile. As for the Coupling method the HamiltonianFile then only contains the diagonal elements. The dipoles are then assumed in Debye and Positions in \AA ngstr\"{o}m. If ExtendedDipole is selected the extended-dipole coupling scheme is used to calculate coupling on the fly. The dipole magnitude is then taken from the Dipolefile. The position of the two transition point-charges must be provided in the Positionfile, with the first point corresponding to odd timepoints and the second point corresponding to even timepoints.
+The HamiltonianType allow the use of different ways to store the Hamiltonian
+trajectories. The default setting is Full, where the full Hamiltonian is given in
+the Hamiltonianfile, if Coupling is specified the couplings are assumed to be constant
+and given in the Couplingfile. The Hamiltonianfile then contain the trajectory of
+fluctuating diagonal elements. If TransitionDipole is specified the couplings are
+calculated on the fly using the transition-dipole coupling scheme. The chromophore
+positions must then be provided in the Positionfile and the transition-dipoles in the
+Dipolefile. As for the Coupling method the HamiltonianFile then only contains the
+diagonal elements. The dipoles are then assumed in Debye and Positions in
+\AA ngstr\"{o}m. If ExtendedDipole is selected the extended-dipole coupling scheme
+is used to calculate coupling on the fly. The dipole magnitude is then taken from
+the Dipolefile. The position of the two transition point-charges must be provided in
+the Positionfile, with the first point corresponding to odd timepoints and the second
+point corresponding to even timepoints.
 
-The double excitation Hamiltonian is propagated using the Trotter formula scheme\cite{Paarmann.2008.JCP.128.191103,Jansen.2010.JCP.132.224503}.
+The double excitation Hamiltonian is propagated using the Trotter formula
+scheme \cite{Paarmann.2008.JCP.128.191103,Jansen.2010.JCP.132.224503}.
 
-During the calculation the program will create a log file called NISE.log. For linear techniques this file will be updated every time a new sample has been calculated. The update contains timing information and
-therefore allows for the estimation of when the complete calculation finishes. For 2D techniques the timing information will given directly in the output file tracking the progress percentage.
+During the calculation the program will create a log file called NISE.log. For linear
+techniques this file will be updated every time a new sample has been calculated.
+The update contains timing information and therefore allows for the estimation of
+when the complete calculation finishes. For 2D techniques the timing information will
+given directly in the output file tracking the progress percentage. The frequency
+at which information is provided can be changed with the \ilk{PrintLevel} keyword.
 
-For exciton diffusion calculations an additional input file containing the site positions is needed.
-This file should be named Position.bin and have the following format. The first entry should be the
-size of the box in float (all sides are assumed equally long). This is followed by the x, y, and z coordinates for each site again in floats. After the coordinates of the first snapshot the coordinates
-for the second follows directly and the coordinates for all snapshots should be stored.
+For exciton diffusion calculations an additional input file containing the site
+positions is needed. This file should be named Position.bin and have the following
+format. The first entry should be the size of the box in float (all sides are assumed
+equally long). This is followed by the x, y, and z coordinates for each site again
+in floats. After the coordinates of the first snapshot the coordinates for the second
+follows directly and the coordinates for all snapshots should be stored.
 
 %For SFG, 2DSFG, and linear dichroism calculations the principle axis is assumed to be the z-axis. The SFG calculations only support the calculation of $\chi^{(2)}_{zzz}$ and $\chi^{(2)}_{xxz}$, which require the diagonal elements of the transition polarizability tensor (given in the alpha file). For 2DSFG $\chi^{(4)}_{zzzzz}$ and $\chi^{(2)}_{zzzxx}$ are currently calculated.
 
 \subsection{Program output}
-The linear absorption calculation provides the linear response function in time domain in the file TD\_Absorption.dat 
-and the linear dichroism response function in time domain in the file RLD.dat. The first 
-column is the time in femto seconds. The other columns are the real and imaginary parts 
-of the response function. It is recommended to check that these have decayed to a small 
-value close to zero in the calculated time interval. If this is not the case the system has 
-not lost its coherence within the time determined by t1 max and the spectrum will be 
-too broad. The linear absorption is given in the file Absorption.dat and the linear dichroism in 
-the file LDIR.dat. The first line is the frequency in wavenumbers, the second line is the 
-absorption spectrum, and a third line contain zeroes. For the linear dichroism calculation 
-the z-axis is assumed to be the unique axis. 
+The linear absorption calculation provides the linear response function in time domain
+in the file TD\_Absorption.dat and the linear dichroism response function in time
+domain in the file RLD.dat. The first column is the time in femto seconds.
+The other columns are the real and imaginary parts of the response function. It is
+recommended to check that these have decayed to a small value close to zero in the
+calculated time interval. If this is not the case the system has not lost its coherence
+within the time determined by t1 max and the spectrum will be too broad. The linear
+absorption is given in the file Absorption.dat and the linear dichroism in the file
+LDIR.dat. The first line is the frequency in wavenumbers, the second line is the 
+absorption spectrum, and a third line contain zeroes. For the linear dichroism
+calculation the z-axis is assumed to be the unique axis. When the projection is set
+to provide spectra projected on multiple sets of sites each set will be stored in
+a separate column. See also the \ilk{Outputformat} keyword for binary options.
+
+For luminescence and DOS the filenames are Luminescence.dat and DOS.dat. These
+techniques only allow for projection on a single set of sites.
 
 %The SFG calculation provides the second order response function in time domain in  the files RSFG\_zzz.dat and RSFG\_xxz\_yyz.dat. The first column is the time in femto seconds. The other columns are the real and imaginary parts of the response function.  It is recommended to check that these have decayed to a small value close to zero in the calculated time interval. If this is not the case the system has not lost its coherence within the time determined by t1 max and the spectrum will be too broad. The frequency domain response functions are given in the files SFG\_zzz.dat and SFG\_xxz\_yyz.dat. The first line  is the frequency in wavenumbers, the second line is the absorption spectrum, and a third line contain zeroes. The z-axis is assumed to be the unique axis.
 
-The 2D calculations (2DIR and 2DUVvis) provides the files R(par/per/cro)(I/II).dat. These files contain the time domain
-third-order response functions for different polarization directions \cite{Hochstrasser.2001.CP.266.273,Zanni.2001.PNAS.98.11265}.
+The 2D calculations (2DIR and 2DUVvis) provides the files R(par/per/cro)(I/II).dat.
+These files contain the time domain third-order response functions for different
+polarization directions \cite{Hochstrasser.2001.CP.266.273,Zanni.2001.PNAS.98.11265}.
 The first three columns are the times t1, t2, and t2 in femtoseconds.
-The two last columns are the real and imaginary parts of the response functions. The frequency domain
-response functions are found using a double Fourier transform (see section \ref{sec:Fourier}).
-It is recommended to check that the response function has decayed within the calculated time intervals.
+The two last columns are the real and imaginary parts of the response functions.
+The frequency domain response functions are found using a double Fourier transform
+(see section \ref{sec:Fourier}). It is recommended to check that the response function
+has decayed within the calculated time intervals.
 
-The 2DIRraman calculations provides the files R(par/per/cro).IRraman.(I/II).dat. These files contain the time domain
-third-order response functions for different polarization directions \cite{Hochstrasser.2001.CP.266.273,Zanni.2001.PNAS.98.11265}.
+The 2DIRraman calculations provides the files R(par/per/cro).IRraman.(I/II).dat.
+These files contain the time domain third-order response functions for different
+polarization directions \cite{Hochstrasser.2001.CP.266.273,Zanni.2001.PNAS.98.11265}.
 The first three columns are the times t1, t2, and t2 in femtoseconds.
-The two last columns are the real and imaginary parts of the response functions. The frequency domain
-response functions are found using a double Fourier transform (see section \ref{sec:Fourier}).
-It is recommended to check that the response function has decayed within the calculated time intervals. 
+The two last columns are the real and imaginary parts of the response functions.
+The frequency domain response functions are found using a double Fourier transform
+(see section \ref{sec:Fourier}). It is recommended to check that the response function
+has decayed within the calculated time intervals. 
 
 %The 2DSFG calculation stores the $\chi^{(4)}_{zzzzz}$ signal in Rpar(I/II).dat, while the $\chi^{(4)}_{zzzyy}$ signal is stored in Rper(I/II).dat. The files are essentially identical to the normal 2D response files and are Fourier transformed in the same way (see section \ref{sec:Fourier}).
 
-The population transfer calculation provides two files. Pop.dat contain two columns. The first is the
-time in femtoseconds the second is the probability that if a site was initially excited it is still excited
-after the given time. This is averaged over all sites. The file PopF.dat contain more detailed information.
-The first column is the time. The following columns are the probability that if a particular site was excited
-initially other sites are excited later. The first N columns are the populations of the N sites following an initial excitation of the first site. Then follows the populations after excitation of the second site etc. This file might be a very large file for big systems.
+The population transfer calculation provides two files. Pop.dat contain two columns.
+The first is the time in femtoseconds the second is the probability that if a site was
+initially excited it is still excited after the given time. This is averaged over all
+sites. The file PopF.dat contain more detailed information. The first column is the
+time. The following columns are the probability that if a particular site was excited
+initially other sites are excited later. The first N columns are the populations of
+the N sites following an initial excitation of the first site. Then follows the
+populations after excitation of the second site etc. This file might be a very large
+file for big systems.
 
-The MCFRET calculation provides, which contains the rate matrix in the file  {\tt RateMatrix.dat}. As required for a master equation the sum of the rates out of a segment is (minus the value of the diagonal element) is equal to the sum of the rates of what is transferred to other segments and the sum of each column is zero. It also outputs the quantum corrected rate matrix, QC\_RateMatrix.dat, with the Oxtoby quantum correction factor $c = \frac{2}{1+e^{-\hbar \omega_{ab}/K_BT}}$. Notice the unit used for the rates is ps$^{-1}$ as processes where MCFRET is relevant are typically slow!
+The MCFRET calculation provides, which contains the rate matrix in the file
+{\tt RateMatrix.dat}. As required for a master equation the sum of the rates out of
+a segment is (minus the value of the diagonal element) is equal to the sum of the
+rates of what is transferred to other segments and the sum of each column is zero.
+It also outputs the quantum corrected rate matrix, QC\_RateMatrix.dat, with the
+Oxtoby quantum correction factor $c = \frac{2}{1+e^{-\hbar \omega_{ab}/K_BT}}$.
+Furthermore, in the file TC\_RateMatrix.dat the partition function based temperature
+correction is provided. Notice the unit used for the rates is ps$^{-1}$ as processes
+where MCFRET is relevant are typically slow!
 
-For the exciton diffusion the output file is Dif.dat It has three columns. The first is the time in femto seconds. The second column is the mean square displacement of the wave function assuming that
-one site is initially excited. The third column is the mean square displacement of the center of the 
-wave function assuming that one site is initially excited. The program averages over all sites as
-initial sites. One should be aware that periodic boundary conditions are applied in this calculation
+% Gijsbert, please check
+When the fourt-order MCFRET is envoked the corrections to the normal MCFRET rates will
+be given in the files RateMatrix\_4th\_I.dat and RateMatrix\_4th\_II.dat. For details
+also see the Techniques section.
+
+For the exciton diffusion the output file is Dif.dat It has three columns. The first is
+the time in femto seconds. The second column is the mean square displacement of the
+wave function assuming that one site is initially excited. The third column is the
+mean square displacement of the center of the  wave function assuming that one site
+is initially excited. The program averages over all sites as initial sites. One should
+be aware that periodic boundary conditions are applied in this calculation
 and the mean square displacements will saturate \cite{Jansen.2010.JCP.132.224503}.
 
-For the integrated anisotropy calculation the output file is Ani.dat. It has three columns. The first is the time in femtoseconds. The second is the integrated anisotropy and the last is the orientational correlation function.
+For the integrated anisotropy calculation the output file is Ani.dat. It has three
+columns. The first is the time in femtoseconds. The second is the integrated anisotropy
+and the last is the orientational correlation function.
 
-The Hamiltonian analysis provides the delocalization length/size according to the def- 
-inition of Thouless \cite{Thouless.1974.PR.13.93} directly in the program standard output. 
+The Hamiltonian analysis provides the delocalization length/size according to the
+definition of Thouless \cite{Thouless.1974.PR.13.93} directly in the program standard
+output. The Manattan exciton size is also provided. This meassure, for example,
+align better with superradiance calculations. 
 
 \section{Fourier transform \label{sec:Fourier}}
 The 2DFFT program use the same input as the NISE program.
-For 2DIR and 2DUVvis the Fourier transformed response is written in files named Rw(par/per/cro).(I/II).dat, where par, per, and cro denote parallel, perpendicular and cross polarized signals. I and II denote the $k_I$ and $k_{II}$ contributions. When Dislin format is used the 2D correlation spectrum is saved in the files 2D.(par/per/cro).dat and the 'broad pump narrow probe' pump probe signal is stored in PP.(par/per/cro).dat. 
-The first column is $\omega_1$, the second is $\omega_3$, the third is the dispersive signal, and the
-last column is the absorptive signal. Perl scripts connected with Dislin are available for plotting or the
-user can use his or her favorite plotting program. The Dislin format is also used by the python plotting code included in the tutorial files.
-The Gunplot output is only differing from the Dislin format in an empty line following ach new value of $\omega_1$. A Gnuplot example file is included in the tutorial. A python plotting script which use the Dislin output format file is included. The cover picture 
-of the manual is generated with this python script.
- For Matlab format only the Rw files are created. These
-then contain a matrix with the response. An additional file waxis.dat is created with the values of the
-frequencies.
+For 2DIR and 2DUVvis the Fourier transformed response is written in files named
+Rw(par/per/cro).(I/II).dat, where par, per, and cro denote parallel, perpendicular
+and cross polarized signals. I and II denote the $k_I$ and $k_{II}$ contributions.
+When Dislin format is used the 2D correlation spectrum is saved in the files
+2D.(par/per/cro).dat and the 'broad pump narrow probe' pump probe signal is stored
+in PP.(par/per/cro).dat. The first column is $\omega_1$, the second is $\omega_3$, the
+third is the dispersive signal, and the last column is the absorptive signal. Perl
+scripts connected with Dislin are available for plotting or the user can use his or
+her favorite plotting program. The Dislin format is also used by the python plotting
+code included in the tutorial files. The Gunplot output is only differing from the
+Dislin format in an empty line following ach new value of $\omega_1$. A Gnuplot
+example file is included in the tutorial. A python plotting script which use the
+Dislin output format file is included. The cover picture of the manual is generated
+with this python script. For Matlab format only the Rw files are created. These
+then contain a matrix with the response. An additional file waxis.dat is created
+with the values of the frequencies.
 
-If a file called Waitingtimes.dat is present all the waiting times given in the file (in fs) will be calculated simultaneously arruming that the response function files are named RparI\_0fs.dat etc. The resulting frequency domain files will be named 2Dpar\_0fs.dat etc.
+If a file called Waitingtimes.dat is present all the waiting times given in the file
+(in fs) will be calculated simultaneously arruming that the response function files
+are named RparI\_0fs.dat etc. The resulting frequency domain files will be named
+2Dpar\_0fs.dat etc.
 
-For 2DIRraman the Fourier transformed response is written in files named\\ Rw(par/per/cro)IRraman.(I/II).dat, where par, per, and cro denote parallel, perpendicular and cross polarized signals. I and II denote the $k_I$ and $k_{II}$ contributions. When Dislin format is used the 2D correlation spectrum is saved in the files 2DIRraman.(par/per/cro).(I/II).dat and signal integrated over $\omega_1$ is stored in PPIRraman.(I/II).(par/per/cro).dat.                  
-The first column is $\omega_1$, the second is $\omega_3$, the third is the dispersive signal, and the last column is the absorptive signal. Note that 2DIRraman rephaing and non-rephasing signals cannot be added directly and are therefore stored separately. The non-rephasing $\omega_1$ frequencies are about twice that of the single excitation transition frequency as first coherence coresponds to a coherence between a double excited state and the ground state.
+For 2DIRraman the Fourier transformed response is written in files named\\
+Rw(par/per/cro)IRraman.(I/II).dat, where par, per, and cro denote parallel,
+perpendicular and cross polarized signals. I and II denote the $k_I$ and $k_{II}$
+contributions. When Dislin format is used the 2D correlation spectrum is saved in
+the files 2DIRraman.(par/per/cro).(I/II).dat and signal integrated over $\omega_1$
+is stored in PPIRraman.(I/II).(par/per/cro).dat. The first column is $\omega_1$, the
+second is $\omega_3$, the third is the dispersive signal, and the last column is
+the absorptive signal. Note that 2DIRraman rephaing and non-rephasing signals cannot 
+be added directly and are therefore stored separately. The non-rephasing $\omega_1$
+frequencies are about twice that of the single excitation transition frequency as
+first coherence coresponds to a coherence between a double excited state and the
+ground state.
