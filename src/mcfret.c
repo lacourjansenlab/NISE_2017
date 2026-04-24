@@ -1224,6 +1224,44 @@ void mcfret_energy(float *E,t_non *non,int segments, float *ave_vecr,float *ener
     return;
 }
 
+void transform_back_to_site(int N,
+                           const float *A_float,
+                           const double *c2,
+                           double *matrix)
+{
+    int i, j;
+    // Perform: matrix_site = A^T * matrix_eigen * A, because A is H, where H is the transpose of the eigenvector matrix.
+    // Convert A -> double (BLAS uses double here)
+    double *A = (double*) malloc(N*N*sizeof(double));
+    double *temp = (double*) calloc(N*N,sizeof(double));
+
+    for (i = 0; i < N*N; i++)
+        A[i] = (double) A_float[i];
+
+    // temp = A * diag(c2)
+    // scale each row j by c2[j]
+    for (j = 0; j < N; j++) {
+        for (i = 0; i < N; i++) {
+            temp[i * N + j] = A[i * N + j] * c2[j];
+        }
+    }
+
+    // matrix = A * temp 
+    cblas_dgemm(
+        CblasColMajor,
+        CblasTrans,    
+        CblasNoTrans,
+        N, N, N,
+        1.0,
+        A, N,
+        temp, N,
+        0.0,
+        matrix, N);
+
+    free(A);
+    free(temp);
+}
+
 /* This function will create a density matrix where every term is weighted with a Boltzmann weight */
 void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int segments, float *partition_functions){
     int index,N;
@@ -1256,8 +1294,8 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int s
         }
     }
     /* Find eigenvalues and eigenvectors */
-    diagonalizeLPD(H,e,N); 
- 
+    diagonalizeLPD(H,e,N);
+
     /* Exponentiate [U=exp(-H/kBT)] */
     for (a=0;a<N;a++){
         if (non->temperature==0){
@@ -1273,20 +1311,7 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int s
     }
 
     /* Transform back to site basis */ 
-    for (a=0;a<N;a++){
-        for (b=0;b<N;b++){
-            cnr[b+a*N]+=((double) H[b+a*N])*c2[b];
-        }
-    }  
-
-// #pragma omp parallel for
-    for (a=0;a<N;a++){
-        for (b=0;b<N;b++){
-            for (c=0;c<N;c++){
-                matrix[a+c*N]+=H[b+a*N]*cnr[b+c*N];
-            }
-        }
-    }
+    transform_back_to_site(N, H, c2, matrix);
   
     /* Find the partition function for each segment */
     for (a=0;a<N;a++){
