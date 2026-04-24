@@ -197,7 +197,12 @@ void readInput(int argc, char* argv[], t_non* non) {
         // Read double excited states
         if (keyWordI("PrintLevel", Buffer, &non->printLevel, LabelLength) == 1) continue;
 
-
+        // We reached the end without recognizing the keyword. Tell the user unless the
+        // first character is # to indicate a comment
+        if (Buffer[0] != '#'){
+            printf(YELLOW "The keyword: %swas not recognized! " RESET, Buffer);
+            printf(YELLOW "Add # infront for 'comment' if you do not want this warning.\n" RESET);
+        }
     }
     while (1 == 1);
     fclose(inputFile);
