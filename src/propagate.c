@@ -1324,7 +1324,7 @@ void time_evolution_mat_non_sparse(t_non* non,
     /* 1. Build Hamiltonian (column-major layout) */
     for (int a = 0; a < N; a++) {
         int triangle_offset = (a * (a + 1)) / 2;
-        H[a + a*N] = Hamiltonian_i[a + N*a - tri_offset];
+        H[a + a*N] = Hamiltonian_i[a + N*a - triangle_offset];
         for (int b = a + 1; b < N; b++) {
             float val = Hamiltonian_i[b + N*a - triangle_offset];
             H[a + b*N] = val;

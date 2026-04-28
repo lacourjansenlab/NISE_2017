@@ -1420,68 +1420,142 @@ void average_density_matrix(float *ave_den_mat,t_non *non){
     return;
 }
 
-/* Matrix multiplication for different segments */
+// /* Matrix multiplication for different segments */
+// void segment_matrix_mul(float *rA,float *iA,float *rB,float *iB,
+//     float *rC,float *iC,int *psites,int segments,int si,int sk,int sj,int N){
+//     int i,j,k;
+//     /* Set initial values of results matrix to zero to be sure */
+//     clearvec(rC,N*N);
+//     clearvec(iC,N*N);
+
+//     int Npsj, Npsk;
+//     int cj, ck;
+//     Npsj=0;
+//     Npsk=0;
+
+//     float *psj, *psk;
+//     psj=(float *)calloc(N,sizeof(float));
+//     psk=(float *)calloc(N,sizeof(float));
+
+//     for (i=0;i<N;i++){
+//         if (psites[i]==sj){
+//             psj[Npsj]=i;
+//             Npsj++;
+//         }
+//         if (psites[i]==sk){
+//             psk[Npsk]=i;
+//             Npsk++;
+//         }
+//     }
+
+// #pragma omp parallel for
+//     for (i=0;i<N;i++){
+//         if (psites[i]==si){
+//             for (cj=0;cj<Npsj;cj++){
+//                 j=psj[cj];
+//                 for (ck=0;ck<Npsk;ck++){
+//                     k=psk[ck];
+//                     rC[i*N+j]+=rA[i*N+k]*rB[k*N+j]-iA[i*N+k]*iB[k*N+j];
+//                     iC[i*N+j]+=rA[i*N+k]*iB[k*N+j]+iA[i*N+k]*rB[k*N+j];
+//                 }
+//             }
+//         }
+//     }
+
+//     /*
+//     for (i=0;i<N;i++){
+//         if (psites[i]==si){
+//             for (j=0;j<N;j++){
+//                 if (psites[j]==sj){
+//                     for (k=0;k<N;k++){
+//                         if (psites[k]==sk){
+//                             rC[i*N+j]+=rA[i*N+k]*rB[k*N+j]-iA[i*N+k]*iB[k*N+j];
+//                             iC[i*N+j]+=rA[i*N+k]*iB[k*N+j]+iA[i*N+k]*rB[k*N+j];
+//                         } 
+//                     } 
+//                 }
+//             }
+//         }
+//     }
+//     */
+//     free(psj);
+//     free(psk);
+//     return;
+// } 
+
+/*  Faster BLAS based matrix multiplication */
 void segment_matrix_mul(float *rA,float *iA,float *rB,float *iB,
     float *rC,float *iC,int *psites,int segments,int si,int sk,int sj,int N){
+
     int i,j,k;
-    /* Set initial values of results matrix to zero to be sure */
+
     clearvec(rC,N*N);
     clearvec(iC,N*N);
 
-    int Npsj, Npsk;
-    int cj, ck;
-    Npsj=0;
-    Npsk=0;
+    int Npsi=0, Npsj=0, Npsk=0;
 
-    float *psj, *psk;
-    psj=(float *)calloc(N,sizeof(float));
-    psk=(float *)calloc(N,sizeof(float));
+    int *psi = (int*)malloc(N*sizeof(int));
+    int *psj = (int*)malloc(N*sizeof(int));
+    int *psk = (int*)malloc(N*sizeof(int));
 
     for (i=0;i<N;i++){
-        if (psites[i]==sj){
-            psj[Npsj]=i;
-            Npsj++;
-        }
-        if (psites[i]==sk){
-            psk[Npsk]=i;
-            Npsk++;
-        }
+        if (psites[i]==si) psi[Npsi++] = i;
+        if (psites[i]==sj) psj[Npsj++] = i;
+        if (psites[i]==sk) psk[Npsk++] = i;
     }
 
-#pragma omp parallel for
-    for (i=0;i<N;i++){
-        if (psites[i]==si){
-            for (cj=0;cj<Npsj;cj++){
-                j=psj[cj];
-                for (ck=0;ck<Npsk;ck++){
-                    k=psk[ck];
-                    rC[i*N+j]+=rA[i*N+k]*rB[k*N+j]-iA[i*N+k]*iB[k*N+j];
-                    iC[i*N+j]+=rA[i*N+k]*iB[k*N+j]+iA[i*N+k]*rB[k*N+j];
-                }
-            }
-        }
-    }
+    /* Create submatrices based in the segment input */
+    float *Ar = (float*)malloc(Npsi*Npsk*sizeof(float));
+    float *Ai = (float*)malloc(Npsi*Npsk*sizeof(float));
+    float *Br = (float*)malloc(Npsk*Npsj*sizeof(float));
+    float *Bi = (float*)malloc(Npsk*Npsj*sizeof(float));
 
-    /*
-    for (i=0;i<N;i++){
-        if (psites[i]==si){
-            for (j=0;j<N;j++){
-                if (psites[j]==sj){
-                    for (k=0;k<N;k++){
-                        if (psites[k]==sk){
-                            rC[i*N+j]+=rA[i*N+k]*rB[k*N+j]-iA[i*N+k]*iB[k*N+j];
-                            iC[i*N+j]+=rA[i*N+k]*iB[k*N+j]+iA[i*N+k]*rB[k*N+j];
-                        } 
-                    } 
-                }
-            }
+    /* Do the segment projection */
+    for (i=0;i<Npsi;i++)
+        for (k=0;k<Npsk;k++){
+            Ar[i*Npsk+k] = rA[psi[i]*N + psk[k]];
+            Ai[i*Npsk+k] = iA[psi[i]*N + psk[k]];
         }
-    }
-    */
-    free(psj);
-    free(psk);
-    return;
-} 
+
+    for (k=0;k<Npsk;k++)
+        for (j=0;j<Npsj;j++){
+            Br[k*Npsj+j] = rB[psk[k]*N + psj[j]];
+            Bi[k*Npsj+j] = iB[psk[k]*N + psj[j]];
+        }
+
+    /* Allocate result blocks */
+    float *Cr = (float*)calloc(Npsi*Npsj,sizeof(float));
+    float *Ci = (float*)calloc(Npsi*Npsj,sizeof(float));
+
+    /* Complex GEMM via 4 real GEMMs */
+
+    // Cr += Ar*Br (with Cr presumed initialised at zero)
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+        Npsi,Npsj,Npsk,1.0f,Ar,Npsk,Br,Npsj,1.0f,Cr,Npsj);
+
+    // Cr -= Ai*Bi
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+        Npsi,Npsj,Npsk,-1.0f,Ai,Npsk,Bi,Npsj,1.0f,Cr,Npsj);
+
+    // Ci += Ar*Bi
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+        Npsi,Npsj,Npsk,1.0f,Ar,Npsk,Bi,Npsj,1.0f,Ci,Npsj);
+
+    // Ci += Ai*Br
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+        Npsi,Npsj,Npsk,1.0f,Ai,Npsk,Br,Npsj,1.0f,Ci,Npsj);
+
+    /* place submatrix back in original N*N matrix */
+    for (i=0;i<Npsi;i++)
+        for (j=0;j<Npsj;j++){
+            rC[psi[i]*N + psj[j]] = Cr[i*Npsj+j];
+            iC[psi[i]*N + psj[j]] = Ci[i*Npsj+j];
+        }
+
+    free(psi); free(psj); free(psk);
+    free(Ar); free(Ai); free(Br); free(Bi);
+    free(Cr); free(Ci);
+}
 
 /* Find the trace of the matrix */
 float trace_rate(float *matrix,int N){
