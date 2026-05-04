@@ -212,12 +212,12 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
     outone=fopen(fname,"w");
     for (i=fft/2;i<=fft-1;i++){
       if (-((fft-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((fft-i)/non->deltat/c_v/fft-shift1)<non->max1){
-//        fprintf(outone,"%f %e %e\n",-((fft-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
         fprintf(outone,"%f ",-((fft-i)/non->deltat/c_v/fft-shift1));
         for (ip=0;ip<pro_dim;ip++){
+          // For Normal Format write both real (absorptive) and imaginary (dispersive) components
           if (strcmp_nocase(non->outputformat,"Normal") ==0){
             fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
-          } else {
+          } else { // For Compact Format only write absorptive component
             fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
           }
         }
@@ -226,12 +226,12 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
     }
     for (i=0;i<=fft/2-1;i++){
       if (-((-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((-i)/non->deltat/c_v/fft-shift1)<non->max1){
-//        fprintf(outone,"%f %e %e\n",-((-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
         fprintf(outone,"%f ",-((-i)/non->deltat/c_v/fft-shift1));
         for (ip=0;ip<pro_dim;ip++){
+          // For Normal Format write both real (absorptive) and imaginary (dispersive) components
           if (strcmp_nocase(non->outputformat,"Normal") ==0){
             fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
-          } else {
+          } else { // For Compact Format only write absorptive component
             fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
           }
         }
@@ -249,7 +249,9 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
         freq=-((fft-i)/non->deltat/c_v/fft-shift1);
         fwrite(&freq, sizeof(float), 1, outone);
         for (ip=0;ip<pro_dim;ip++){
+          // For both Binary Formats write both real (absorptive) components
           fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
+          // For Binary Format (not BinaryCompact) write imaginary (dispersive) components
           if (strcmp_nocase(non->outputformat,"Binary")==0){
             fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
           }
@@ -261,7 +263,9 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
         freq=-((-i)/non->deltat/c_v/fft-shift1);
         fwrite(&freq, sizeof(float), 1, outone);
         for (ip=0;ip<pro_dim;ip++){
+          // For both Binary Formats write both real (absorptive) components
           fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
+          // For Binary Format (not BinaryCompact) write imaginary (dispersive) components
           if (strcmp_nocase(non->outputformat,"Binary")==0){
             fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
           }
