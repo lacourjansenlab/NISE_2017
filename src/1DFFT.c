@@ -207,7 +207,7 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
      }
   }
 
-  // For normal setting save as text file
+  // For normal and compact setting save as text file
   if (string_in_array(non->outputformat,(char*[]){"Normal","Compact"},2)){
     outone=fopen(fname,"w");
     for (i=fft/2;i<=fft-1;i++){
@@ -240,7 +240,7 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
     }
   }
 
-  // For absorption setting save as binary file
+  // For output format setting save as binary or binary compact file
   if (string_in_array(non->outputformat,(char*[]){"Binary","CompactBinary"},2)){
     char *binary_fname = replace_ext(fname, ".dat", ".bin");
     outone=fopen(binary_fname,"wb");
