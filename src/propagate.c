@@ -1310,8 +1310,7 @@ void time_evolution_mat_non_sparse(t_non* non,
     float f = non->deltat * icm2ifs * (float)twoPi;
     size_t sz = (size_t)N * N;
 
-    float *H  = (float *)calloc(sz, sizeof(float)); // temp (transpose of eigenvectors)
-    float *V  = (float *)calloc(sz, sizeof(float)); // eigenvectors as columns
+    float *H  = (float *)calloc(sz, sizeof(float)); // eigenvectors as rows (from diagonalizeLPD)
     float *e  = (float *)calloc(N, sizeof(float));
     float *re_U = (float *)calloc(N, sizeof(float));
     float *im_U = (float *)calloc(N, sizeof(float));
@@ -1321,64 +1320,60 @@ void time_evolution_mat_non_sparse(t_non* non,
     float alpha = 1.0f;
     float beta  = 0.0f;
 
-    /* 1. Build Hamiltonian (column-major layout) */
+    /* 1. Build Hamiltonian (row-major layout) */
+    /* Build Hamiltonian */
     for (int a = 0; a < N; a++) {
-        int triangle_offset = (a * (a + 1)) / 2;
-        H[a + a*N] = Hamiltonian_i[a + N*a - triangle_offset];
+        H[a + N * a] = Hamiltonian_i[a + N * a - (a * (a + 1)) / 2]; // Diagonal
         for (int b = a + 1; b < N; b++) {
-            float val = Hamiltonian_i[b + N*a - triangle_offset];
-            H[a + b*N] = val;
-            H[b + a*N] = val;
+            H[a + N * b] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
+            H[b + N * a] = Hamiltonian_i[b + N * a - (a * (a + 1)) / 2];
         }
-    }
+    } 
 
-    /* 2. Diagonalize: H → eigenvectors in ROWS */
+    /* 2. Diagonalize: H → eigenvectors in COLUMNS, row major layout */
     diagonalizeLPD(H, e, N);
 
-    /* 3. Transpose to get V with eigenvectors as COLUMNS */
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            V[i + j*N] = H[j + i*N];
-        }
-    }
-
-    /* 4. Exponent of eigenvalues */
+    /* 3. Exponent of eigenvalues */
     for (int a = 0; a < N; a++) {
         re_U[a] = cosf(e[a] * f);
         im_U[a] = -sinf(e[a] * f);
     }
 
-    /* 5. tmp = V * D  (scale columns of V) */
-    for (int j = 0; j < N; j++) {
-        float sr = re_U[j];
-        float si = im_U[j];
-        for (int i = 0; i < N; i++) {
-            tmp_r[i + j*N] = V[i + j*N] * sr;
-            tmp_i[i + j*N] = V[i + j*N] * si;
+    /* 4. tmp_r = D * H (scale columns of H by real part of exponentials) */
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            tmp_r[i*N + j] = H[i*N + j] * re_U[j];
         }
     }
 
-    /* 6. Ur = tmp_r * V^T */
-    cblas_sgemm(CblasColMajor,
+    /* 5. tmp_i = D * H (scale columns of H by imaginary part of exponentials) */
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            tmp_i[i*N + j] = H[i*N + j] *  im_U[j];
+        }
+    }
+
+    /* 6. Ur =  tmp_r @ H^T (row-major) */
+    cblas_sgemm(CblasRowMajor,
                 CblasNoTrans, CblasTrans,
                 N, N, N,
                 alpha,
                 tmp_r, N,
-                V, N,
+                H, N,
                 beta,
                 Ur, N);
 
-    /* 7. Ui = tmp_i * V^T */
-    cblas_sgemm(CblasColMajor,
+    /* 7. Ui =  tmp_i @ H^T  (row-major) */
+    cblas_sgemm(CblasRowMajor,
                 CblasNoTrans, CblasTrans,
                 N, N, N,
                 alpha,
                 tmp_i, N,
-                V, N,
+                H, N,
                 beta,
                 Ui, N);
 
-    free(H); free(V); free(e);
+    free(H); free(e);
     free(re_U); free(im_U);
     free(tmp_r); free(tmp_i);
 }

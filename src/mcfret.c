@@ -1230,7 +1230,7 @@ void transform_back_to_site(int N,
                            double *matrix)
 {
     int i, j;
-    // Perform: matrix_site = A^T * matrix_eigen * A, because A is H, where H is the transpose of the eigenvector matrix.
+    // Perform: matrix_site = H * matrix_eigen * H.T
     // Convert A -> double (BLAS uses double here)
     double *A = (double*) malloc(N*N*sizeof(double));
     double *temp = (double*) calloc(N*N,sizeof(double));
@@ -1239,22 +1239,22 @@ void transform_back_to_site(int N,
         A[i] = (double) A_float[i];
 
     // temp = A * diag(c2)
-    // scale each row j by c2[j]
-    for (j = 0; j < N; j++) {
-        for (i = 0; i < N; i++) {
+    // scale each column j by c2[i]
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             temp[i * N + j] = A[i * N + j] * c2[j];
         }
     }
 
-    // matrix = A * temp 
+    // matrix =  temp * A^T =  (A * D) * A^T 
     cblas_dgemm(
-        CblasColMajor,
-        CblasTrans,    
-        CblasNoTrans,
+        CblasRowMajor,
+        CblasNoTrans,    
+        CblasTrans,
         N, N, N,
         1.0,
-        A, N,
         temp, N,
+        A, N,
         0.0,
         matrix, N);
 
@@ -1267,7 +1267,6 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
     int index,N;
     float *H,*e;
     double *c2;
-    double *cnr;
     double *matrix;
 
     FILE *log;
@@ -1298,7 +1297,6 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
         H=(float *)calloc(N_site_si*N_site_si,sizeof(float));
         e=(float *)calloc(N_site_si,sizeof(float));
         c2=(double *)calloc(N_site_si,sizeof(double));
-        cnr=(double *)calloc(N_site_si*N_site_si,sizeof(double));
         matrix=(double *)calloc(N_site_si*N_site_si,sizeof(double));
 
         // clear the partition function for each segment
@@ -1364,7 +1362,7 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
         free(H);
         free(c2);
         free(e);
-        free(cnr);
+        free(matrix);
     } //close the segment loop
     free(H_indices_si);
 
