@@ -148,6 +148,7 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
   fftw_complex *fftIn,*fftOut;
   fftw_plan fftPlan;
   float *spec_r,*spec_i;
+  float freq;
   /* Integers */
   int i,fft;
   int pro_dim,ip;
@@ -201,32 +202,122 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
 
      fftw_execute(fftPlan);
      for (i=0;i<2*fft;i++){
-          spec_r[i+fft*2*ip]=fftOut[i][1];
-          spec_i[i+fft*2*ip]=fftOut[i][0];
+          spec_r[i+fft*2*ip]=fftOut[i][1]*2*non->deltat*c_v;
+          spec_i[i+fft*2*ip]=fftOut[i][0]*2*non->deltat*c_v;
      }
   }
-  outone=fopen(fname,"w");
-  for (i=fft/2;i<=fft-1;i++){
-    if (-((fft-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((fft-i)/non->deltat/c_v/fft-shift1)<non->max1){
-//      fprintf(outone,"%f %e %e\n",-((fft-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
-      fprintf(outone,"%f ",-((fft-i)/non->deltat/c_v/fft-shift1));
-      for (ip=0;ip<pro_dim;ip++){
-         fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+
+  // For normal and compact setting save as text file
+  if (string_in_array(non->outputformat,(char*[]){"Normal","Compact"},2)){
+    outone=fopen(fname,"w");
+    for (i=fft/2;i<=fft-1;i++){
+      if (-((fft-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((fft-i)/non->deltat/c_v/fft-shift1)<non->max1){
+        fprintf(outone,"%f ",-((fft-i)/non->deltat/c_v/fft-shift1));
+        for (ip=0;ip<pro_dim;ip++){
+          // For Normal Format write both real (absorptive) and imaginary (dispersive) components
+          if (strcmp_nocase(non->outputformat,"Normal") ==0){
+            fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          } else { // For Compact Format only write absorptive component
+            fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
+          }
+        }
+        fprintf(outone,"\n");
       }
-      fprintf(outone,"\n");
+    }
+    for (i=0;i<=fft/2-1;i++){
+      if (-((-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((-i)/non->deltat/c_v/fft-shift1)<non->max1){
+        fprintf(outone,"%f ",-((-i)/non->deltat/c_v/fft-shift1));
+        for (ip=0;ip<pro_dim;ip++){
+          // For Normal Format write both real (absorptive) and imaginary (dispersive) components
+          if (strcmp_nocase(non->outputformat,"Normal") ==0){
+            fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+          } else { // For Compact Format only write absorptive component
+            fprintf(outone,"%e ",spec_r[i+fft*2*ip]);
+          }
+        }
+        fprintf(outone,"\n");
+      }
     }
   }
-  for (i=0;i<=fft/2-1;i++){
-    if (-((-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((-i)/non->deltat/c_v/fft-shift1)<non->max1){
-//      fprintf(outone,"%f %e %e\n",-((-i)/non->deltat/c_v/fft-shift1),fftOut[i][1],fftOut[i][0]);
-      fprintf(outone,"%f ",-((-i)/non->deltat/c_v/fft-shift1));
-      for (ip=0;ip<pro_dim;ip++){
-          fprintf(outone,"%e %e ",spec_r[i+fft*2*ip],spec_i[i+fft*2*ip]);
+
+  // For output format setting save as binary or binary compact file
+  if (string_in_array(non->outputformat,(char*[]){"Binary","CompactBinary"},2)){
+    char *binary_fname = replace_ext(fname, ".dat", ".bin");
+    outone=fopen(binary_fname,"wb");
+    for (i=fft/2;i<=fft-1;i++){
+      if (-((fft-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((fft-i)/non->deltat/c_v/fft-shift1)<non->max1){
+        freq=-((fft-i)/non->deltat/c_v/fft-shift1);
+        fwrite(&freq, sizeof(float), 1, outone);
+        for (ip=0;ip<pro_dim;ip++){
+          // For both Binary Formats write both real (absorptive) components
+          fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
+          // For Binary Format (not BinaryCompact) write imaginary (dispersive) components
+          if (strcmp_nocase(non->outputformat,"Binary")==0){
+            fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          }
+        }
       }
-      fprintf(outone,"\n");
+    }
+    for (i=0;i<=fft/2-1;i++){
+      if (-((-i)/non->deltat/c_v/fft-shift1)>non->min1 && -((-i)/non->deltat/c_v/fft-shift1)<non->max1){
+        freq=-((-i)/non->deltat/c_v/fft-shift1);
+        fwrite(&freq, sizeof(float), 1, outone);
+        for (ip=0;ip<pro_dim;ip++){
+          // For both Binary Formats write both real (absorptive) components
+          fwrite(&spec_r[i+fft*2*ip], sizeof(float), 1, outone);
+          // For Binary Format (not BinaryCompact) write imaginary (dispersive) components
+          if (strcmp_nocase(non->outputformat,"Binary")==0){
+            fwrite(&spec_i[i+fft*2*ip], sizeof(float), 1, outone);
+          }
+        }
+      }
     }
   }
-    
-  fclose(outone);
+
+  if (string_in_array(non->technique,(char*[]){"Luminescence","PL","Fluorescence"},3))
+  {
+  float total_area, delta_freq = 1.0/non->deltat/c_v/fft; 
+  float current_freq, upper_limit, lower_limit;
+  float  scaled_area;
+  total_area=0;
+  float area_full =0;
+  for(i = 0; i < fft; i++)
+   {if(i >= fft/2) 
+    {
+    current_freq = -((fft-i)/non->deltat/c_v/fft-shift1); 
+    }
+    else
+    {
+      current_freq = (i/non->deltat/c_v/fft)+shift1;  
+    }
+    total_area+=spec_r[i]*pow(current_freq,3)*delta_freq; 
+    area_full+=spec_r[i]*delta_freq; 
 }
+
+  //conversion factor added due to change of units
+  //to 1/ns from cm^(-4)*Debye^2
+  scaled_area = total_area*3.13618894e-16;  
+
+  if(strcmp(fname,"Luminescence.dat")==0){
+    printf("\nCalculated emission rate: %f 1/ns.\n\n",scaled_area);}
+
+  if(non->printLevel ==1){
+  printf("The area under the graph is %f.\n", area_full);
+
+  if(strcmp(fname,"Luminescence_x.dat")==0){ 
+    printf("The area under the graph for the x axis component is %f.\n", area_full);}
+
+  if(strcmp(fname,"Luminescence_y.dat")==0){ 
+    printf("The area under the graph for the y axis component is %f.\n", area_full);}
+
+ if(strcmp(fname,"Luminescence_z.dat")==0){ 
+    printf("The area under the graph for the z axis component is %f.\n", area_full);}
+
+ }}
+
+  fclose(outone);
+
+  return; 
+ }
+
 

@@ -7,6 +7,7 @@
 #include "types.h"
 #include "NISE_subs.h"
 #include "read_trajectory.h"
+#include "hamshift.h"
 #include "randomlib.h"
 #include "util/asprintf.h"
 
@@ -78,6 +79,7 @@ void read_Hamiltonian(t_non *non,float *Hamil_i_e,FILE *H_traj,int pos){
            exit(1);
         }
     }
+
     return;
 }
 
@@ -329,6 +331,9 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
         }
     }
 
+    // Shift single excited states if needed
+    apply_singleshift(non,He);
+
     return control;
 }
 
@@ -356,6 +361,9 @@ int read_Dia(t_non* non, float* He, FILE* FH, int pos) {
         He[i * non->singles + i - (i * (i + 1)) / 2] = H[i] - non->shifte;
     }
     free(H);
+
+    // Shift single excited states if needed
+    apply_singleshift(non,He);
     return control;
 }
 
