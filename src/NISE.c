@@ -101,6 +101,9 @@ int main(int argc, char* argv[]) {
 
         // Read the input
         readInput(argc, argv, non);
+        
+        // Read the shift file if pressent (on master)
+        read_shift(non);
 
         // Do initial check of the configuration
         initResult = control(non);
@@ -137,6 +140,20 @@ int main(int argc, char* argv[]) {
         }
 
         MPI_Bcast(non->psites, non->singles, MPI_INT, 0, MPI_COMM_WORLD);
+    }
+
+    // Sync the single shift array, allocate it first if not root process, if necessary
+    int has_single_shift = (parentRank == 0 && non->SingleShift != NULL);
+    MPI_Bcast(&has_single_shift, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    if (has_single_shift) {
+        if (parentRank != 0) {
+            non->SingleShiftSite=(int *)calloc(non->SingleShiftSites,sizeof(int));
+            non->SingleShift=(float *)calloc(2*non->SingleShiftSites,sizeof(float));
+        }
+        MPI_Bcast(&non->SingleShiftSites, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(non->SingleShiftSite, non->SingleShiftSites, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(non->SingleShift, 2*non->SingleShiftSites, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
 
     /* Inform user of parallel info */
@@ -217,7 +234,7 @@ int main(int argc, char* argv[]) {
     if (string_in_array(non->technique,(char*[]){"MCFRET",
 	   "MCFRET-Autodetect","MCFRET-Absorption","MCFRET-Emission",
 	   "MCFRET-Coupling","MCFRET-Rate","MCFRET-Analyse",
-	   "MCFRET-Density","MCFRET-4th"},9)){
+	   "MCFRET-Density","MCFRET-4th-approx","MCFRET-4th-full"},10)){
         /* Does not support MPI */
         if (parentRank == 0) {
             mcfret(non);
