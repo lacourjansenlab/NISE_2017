@@ -202,7 +202,7 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
             m1x=mu[i];
             m1y=mu[non->singles+i];
             m1z=mu[2*non->singles+i];
-	   mu1norm = sqrt(m1x*m1x + m1y*m1y + m1z*m1z);
+	        mu1norm = sqrt(m1x*m1x + m1y*m1y + m1z*m1z);
             for (j = i+1; j < non->singles; j++) {
                 Rx=pbc1(R[i]-R[j],0,box);
                 Ry=pbc1(R[non->singles+i]-R[non->singles+j],1,box);
@@ -211,29 +211,28 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
                 m2y=mu[non->singles+j];
                 m2z=mu[2*non->singles+j];
                 mu2norm = sqrt(m2x*m2x+m2y*m2y+m2z*m2z);
-	 	dist=sqrt(Rx*Rx+Ry*Ry+Rz*Rz);
+	 	        dist=sqrt(Rx*Rx+Ry*Ry+Rz*Rz);
                 idist=1.0/dist;
                 idist3=idist*idist*idist;
-		mu12norm = 1/(mu1norm*mu2norm);
                 f1=m1x*m2x+m1y*m2y+m1z*m2z;
                 f2=-3*(m1x*Rx+m1y*Ry+m1z*Rz)*(m2x*Rx+m2y*Ry+m2z*Rz)*idist*idist;
-    		f3 = (m1x*Rx+m1y*Ry+m1z*Rz)*(m2x*Rx+m2y*Ry+m2z*Rz)*idist*idist;
-
-		if((string_in_array(non->hamiltonian, (char*[]){"TransitionDipole","ShortTransitionDipole"}, 2))) {
-            He[Sindex(i,j,non->singles)] = A*(f1+f2)*idist3*mu12norm;
-        }
+		        if((string_in_array(non->hamiltonian, (char*[]){"TransitionDipole","ShortTransitionDipole"}, 2))) {
+                    He[Sindex(i,j,non->singles)] = A*(f1+f2)*idist3; //*mu12norm;
+                }
 
                 if((!strcmp(non->hamiltonian, "LongTransitionDipole"))) {
+                    f3 = (m1x*Rx+m1y*Ry+m1z*Rz)*(m2x*Rx+m2y*Ry+m2z*Rz)*idist*idist;
+                    mu12norm = 1/(mu1norm*mu2norm);
                     freq = (non->max1+non->min1)/2;
                     k = 2*M_PI*freq*1e-8;
-			//printf("the k value is:%f\n",k);
-		    lambda = c_v*1e13/2/M_PI/freq;
-			//printf("the wavelength is %f\n",lambda);
+			        //printf("the k value is:%f\n",k);
+		            lambda = c_v*1e13/2/M_PI/freq;
+			        //printf("the wavelength is %f\n",lambda);
                     l1 = (cos(k*dist))*idist*k*k;
                     l2 = (sin(k*dist))*idist*idist*k;
                     l3 = (cos(k*dist))*idist3;
 
-                    He[Sindex(i,j,non->singles)] = A*((-(f1-f3)*l1)+(f1+f2)*(l2+l3))*mu12norm; 
+                    He[Sindex(i,j,non->singles)] = A*((-(f1-f3)*l1)+(f1+f2)*(l2+l3));//*mu12norm; 
                 }
             }
        }
