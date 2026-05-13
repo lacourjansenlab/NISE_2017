@@ -131,7 +131,9 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
         fclose(pbc_traj);
     }
     /* Read only diagonal part */
-    if ((!strcmp(non->hamiltonian, "Coupling") && pos >= 0) || (!strcmp(non->hamiltonian, "ShortTransitionDipole")) || (!strcmp(non->hamiltonian, "LongTransitionDipole")) || (!strcmp(non->hamiltonian, "ExtendedDipole")) ){
+    if ((!strcmp(non->hamiltonian, "Coupling") && pos >= 0) ||
+            string_in_array(non->hamiltonian, (char*[]){"TransitionDipole",
+                "ShortTransitionDipole", "LongTransitionDipole", "ExtendedDipole"}, 4)) {
         H = (float *)calloc(non->singles, sizeof(float));
         /* Find position */
         fseek(FH, pos * (sizeof(int) + sizeof(float) * (non->singles)),SEEK_SET);
@@ -177,7 +179,8 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
     }
     /* Find the couplings from the TDC 'on the fly' scheme  */
     A=5034.11861687; /* Convert to cm-1 from Deb**2/Ang**3 */
-    if ((!strcmp(non->hamiltonian, "ShortTransitionDipole")) || (!strcmp(non->hamiltonian, "LongTransitionDipole"))) {
+    if (string_in_array(non->hamiltonian, (char*[]){"TransitionDipole",
+        "ShortTransitionDipole", "LongTransitionDipole"}, 3)) {
         R = (float *)calloc(3*non->singles, sizeof(float));
         mu = (float *)calloc(3*non->singles, sizeof(float));
         /* Read in positions */
@@ -216,9 +219,9 @@ int read_He(t_non* non, float* He, FILE* FH, int pos) {
                 f2=-3*(m1x*Rx+m1y*Ry+m1z*Rz)*(m2x*Rx+m2y*Ry+m2z*Rz)*idist*idist;
     		f3 = (m1x*Rx+m1y*Ry+m1z*Rz)*(m2x*Rx+m2y*Ry+m2z*Rz)*idist*idist;
 
-		if((!strcmp(non->hamiltonian, "ShortTransitionDipole"))) {
-    He[Sindex(i,j,non->singles)] = A*(f1+f2)*idist3*mu12norm;
-                }
+		if((string_in_array(non->hamiltonian, (char*[]){"TransitionDipole","ShortTransitionDipole"}, 2))) {
+            He[Sindex(i,j,non->singles)] = A*(f1+f2)*idist3*mu12norm;
+        }
 
                 if((!strcmp(non->hamiltonian, "LongTransitionDipole"))) {
                     freq = (non->max1+non->min1)/2;
