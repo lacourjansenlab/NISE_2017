@@ -274,8 +274,14 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
     }
   }
 
+  // Calculate the radiative lifetime if we calculate luminescence 
   if (string_in_array(non->technique,(char*[]){"Luminescence","PL","Fluorescence"},3))
   {
+    if (non->is>0){
+      if(strcmp(fname,"Luminescence.dat")==0){
+        printf("The radiative lifetime cannot be calculated when using imaginary time propagation to calculate the Boltzman weights.\n\n");
+      }
+    } else {
   float total_area, delta_freq = 1.0/non->deltat/c_v/fft; 
   float current_freq, upper_limit, lower_limit;
   float  scaled_area;
@@ -315,7 +321,9 @@ void do_1DFFT(t_non *non,char fname[],float *re_S_1,float *im_S_1,int samples){
  if(strcmp(fname,"Luminescence_z.dat")==0){ 
     printf("The integrated luminescence for the z axis component is %f.\n", area_full);}
 
- }}
+ }
+ }
+ }
 
   fclose(outone);
 
