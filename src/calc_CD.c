@@ -136,7 +136,7 @@ void calc_CD(t_non *non){
   pos=(float *)calloc(non->singles,sizeof(float));
   pos_xyz=(float *)calloc(non->singles*3,sizeof(float));
 
-  printf("\n Note that the CD implementation assumes that the positions of\n");
+  printf("\nNote that the CD implementation assumes that the positions of\n");
   printf("the full system specified in the Position file is contained\n");
   printf("in a box as periodic boundary contitions are NOT applied.\n\n");
 
