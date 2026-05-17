@@ -234,7 +234,7 @@ void calc_CD(t_non *non){
                     z=3-x-y;
 	      /* Read mu(tj) */
                     if (!strcmp(non->hamiltonian,"Coupling")){
-                        copyvec(mu_xyz+non->singles*x,mu_eg,non->singles);
+                        copyvec(mu_xyz+non->singles*y,mu_eg,non->singles);
                     } else {
 	                if (read_mue(non,mu_eg,mu_traj,tj,y)!=1){
 	                    printf("Dipole trajectory file to short, could not fill buffer!!!\n");
