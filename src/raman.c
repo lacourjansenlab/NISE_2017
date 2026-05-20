@@ -31,7 +31,7 @@ void raman(t_non *non){
   /* File handles */
   FILE *H_traj,*alpha_traj;
   FILE *C_traj;
-  FILE *outone,*log;
+  FILE *log;
   FILE *Cfile;
 
   /* Integers */
@@ -245,27 +245,9 @@ void raman(t_non *non){
   }
 
   /* Save time domain response */
-  outone=fopen("TD_Raman_VV.dat","w");
-  for (t1=0;t1<non->tmax1;t1+=non->dt1){
-    //fprintf(outone,"%f %e %e\n",t1*non->deltat,VV_re_S_1[t1]/samples,VV_im_S_1[t1]/samples);
-     fprintf(outone,"%f ",t1*non->deltat);
-     for (ip=0;ip<pro_dim;ip++){
-        fprintf(outone,"%e %e ",VV_re_S_1[t1+ip*non->tmax]/samples,VV_im_S_1[t1+ip*non->tmax]/samples);
-     }
-     fprintf(outone,"\n");
-  }
-  fclose(outone);
+  save_time_domain_response(non,"TD_Raman_VV.dat",VV_re_S_1,VV_im_S_1,pro_dim,samples);
 
-    outone=fopen("TD_Raman_VH.dat","w");
-  for (t1=0;t1<non->tmax1;t1+=non->dt1){
-    //fprintf(outone,"%f %e %e\n",t1*non->deltat,2*VH_re_S_1[t1]/samples,2*VH_im_S_1[t1]/samples);
-     fprintf(outone,"%f ",t1*non->deltat);
-     for (ip=0;ip<pro_dim;ip++){
-        fprintf(outone,"%e %e ",VH_re_S_1[t1+ip*non->tmax]/samples,VH_im_S_1[t1+ip*non->tmax]/samples);
-     }
-     fprintf(outone,"\n");
-  }
-  fclose(outone);
+  save_time_domain_response(non,"TD_Raman_VH.dat",VH_re_S_1,VH_im_S_1,pro_dim,samples);
 
   /* Do Forier transform and save */
   do_1DFFT(non,"Raman_VV.dat",VV_re_S_1,VV_im_S_1,samples);
