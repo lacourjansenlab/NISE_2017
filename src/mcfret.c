@@ -1288,7 +1288,7 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
     double segment_partition_func = 0;
 
     double reference_energy;
-    reference_energy = non->max1; // Simply use the first value of the maximum indicated frequencies as reference energy
+    reference_energy = non->min1; // Simply use the first value of the maximum indicated frequencies as reference energy
 
     for (si=0;si<N_segments;si++){
         float *Hamiltonian_segment_triu;
@@ -1317,9 +1317,10 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
         }
         /* Find eigenvalues and eigenvectors */
         diagonalizeLPD(H,e,N_site_si);
-
-        log=fopen("NISE.log","a");
-        fprintf(log,"Boltzmann factors for segment %d: ", si);
+        if (non->printLevel>0){
+            log=fopen("NISE.log","a");
+            fprintf(log,"Boltzmann factors for segment %d: ", si);
+        }
         /* Exponentiate [U=exp(-H/kBT)] */
         for (a=0;a<N_site_si;a++){
             if (non->temperature==0){
@@ -1334,10 +1335,14 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
             }
             c2[a] = Boltzmann;
             segment_partition_func += Boltzmann;
-            fprintf(log," %e ", Boltzmann);
+            if (non->printLevel>0){
+                fprintf(log," %e ", Boltzmann);
+            }
         }
-        fprintf(log,"\n" );
-        fclose(log);
+        if (non->printLevel>0){
+            fprintf(log,"\n" );
+            fclose(log);
+        }
 
         /* Transform back to site basis */ 
         transform_back_to_site(N_site_si, H, c2, matrix);
@@ -1352,10 +1357,12 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
     
         /* Update the ensemble average partition function for each segment*/
         partition_functions[si] += (float) segment_partition_func;
-        printf("Partition function for segment %d =  %e \n",si,segment_partition_func);
-        log=fopen("NISE.log","a");
-        fprintf(log,"Partition function for segment %d =  %e \n",si,segment_partition_func);
-        fclose(log);
+        if (non->printLevel>0){
+            printf("Partition function for segment %d =  %e \n",si,segment_partition_func);
+            log=fopen("NISE.log","a");
+            fprintf(log,"Partition function for segment %d =  %e \n",si,segment_partition_func);
+            fclose(log);
+        }
     
     
         free(Hamiltonian_segment_triu);
@@ -1514,16 +1521,11 @@ void average_density_matrix(float *ave_den_mat,t_non *non){
           ave_den_mat[ele] +=vecr[ele]; 
       }
     }
-    /* Zero the coupling between different segments for the averaged density *
-     * matrix and normalize */
+    /* Normalise the average density matrix */
     i_samples=1.0/my_samples;
     for (a=0;a<non->singles;a++){
         for (b=0;b<non->singles;b++){
 	    ave_den_mat[non->singles*b+a]*=i_samples;
-            if (non->psites[a] != non->psites[b]){
-               ave_den_mat[non->singles*a+b]=0.0;
-               /* ave_den_mat[non->singles*b+a]=0.0; */
-            } 
         }
     }
 
