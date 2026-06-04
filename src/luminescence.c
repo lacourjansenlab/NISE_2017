@@ -5,6 +5,7 @@
 #include <time.h>
 #include <fftw3.h>
 #include "omp.h"
+#include <cblas.h>
 #include "types.h"
 #include "NISE_subs.h"
 #include "read_trajectory.h"
@@ -46,7 +47,7 @@ void luminescence(t_non *non){
   int t1,fft;
   int elements;
   int pro_dim;
-
+ 
   /* Time parameters */
   time_t time_now,time_old,time_0;
   fft=0; 
@@ -57,11 +58,11 @@ void luminescence(t_non *non){
   printf("Frequency shift %f.\n",shift1);
   non->shifte=shift1;
   printf("Temperature %f.\n",non->temperature);
-  
+
   pro_dim=project_dim(non);
   if (pro_dim>1){
-    printf("Multi segement projection is not implemented.\n");
-    exit(0);
+     printf("Multi segement projection is not implemented.\n");
+     exit(0);
   }
 
 
@@ -83,8 +84,6 @@ void luminescence(t_non *non){
   /* Here we want to call the routine for checking the trajectory files */
   /* before we start the calculation */
   control(non);
-
-
 
   itime=0;
   // Do calculation
@@ -128,7 +127,7 @@ void luminescence(t_non *non){
     for (x=0;x<3;x++){
       /* Read mu(ti) */
       if (!strcmp(non->hamiltonian,"Coupling")){
-          copyvec(mu_xyz+non->singles*x,vecr,non->singles);
+          copyvec(mu_xyz+non->singles*x,vecr,non->singles);	
       } else {
           if (read_mue(non,vecr,mu_traj,ti,x)!=1){
 	      printf("Dipole trajectory file to short, could not fill buffer!!!\n");
@@ -140,7 +139,7 @@ void luminescence(t_non *non){
 //      copyvec(vecr,vecr_old,non->singles);
       copyvec(vecr,mu_eg,non->singles);
 
-        /* Add Boltzman weight */
+        /* Add Boltzman weight as obtained for individual frame */
         if (non->is==0){
             bltz_weight(vecr,Hamil_i_e,non);
         } else {
@@ -157,19 +156,13 @@ void luminescence(t_non *non){
         /* Read mu(tj) */
         read_dipole(non,mu_traj,mu_eg,mu_xyz,x,tj);
 
-	// Do projection on selected sites if asked
-	if (non->Npsites>0){
-	  projection(mu_eg,non);
-	}
-
-	/* Add Boltzman weight */
-/*	if (non->is==0){
-	    bltz_weight(mu_eg,Hamil_i_e,non);
-	} else {
-            bltz_weight_itime(mu_eg,Hamil_i_e,non);
-        }*/    
-	// Find response
-	calc_LUM(re_S_1,im_S_1,t1,non,vecr,veci,mu_eg);
+	      // Do projection on selected sites if asked
+	      if (non->Npsites>0){
+	        projection(mu_eg,non);
+	      }
+   
+	      // Find response
+	      calc_LUM(re_S_1,im_S_1,t1,non,vecr,veci,mu_eg);
         if (x==0) calc_LUM(re_S_1x,im_S_1x,t1,non,vecr,veci,mu_eg);
         if (x==1) calc_LUM(re_S_1y,im_S_1y,t1,non,vecr,veci,mu_eg);
         if (x==2) calc_LUM(re_S_1z,im_S_1z,t1,non,vecr,veci,mu_eg);
@@ -187,7 +180,7 @@ void luminescence(t_non *non){
     fclose(log);
   }
 
-  // Print values of the last transtion-dipoles so user can easily see if they were in Debye units or not
+// Print values of the last transtion-dipoles so user can easily see if they were in Debye units or not
   print_average_dipole(non,mu_traj,mu_eg,mu_xyz);
 
   free(vecr);
@@ -205,7 +198,8 @@ void luminescence(t_non *non){
   fclose(log);
 
   fclose(mu_traj),fclose(H_traj);
-  /* Print information on number of realizations included belonging to the selected */
+
+/* Print information on number of realizations included belonging to the selected */
   /* cluster and close the cluster file. (Only to be done if cluster option is active.) */
   if (non->cluster!=-1){
     printf("Cluster calculation not yet implemented for luminescence.\n");
@@ -228,13 +222,12 @@ void luminescence(t_non *non){
   free(re_S_1x),free(im_S_1x);
   free(re_S_1y),free(im_S_1y);
   free(re_S_1z),free(im_S_1z);
-
+  
   printf("----------------------------------------------\n");
   printf(" Luminescence calculation succesfully completed\n");
   printf("----------------------------------------------\n\n");
 
-  return;
-}	
+  return;}
 
 void calc_LUM(float *re_S_1,float *im_S_1,int t1,t_non *non,float *cr,float *ci,float *mu){
   int i;
@@ -283,14 +276,22 @@ void bltz_weight(float *mu_eg,float *Hamiltonian_i,t_non *non){
     for (b=0;b<N;b++){
       cnr[b+a*N]+=H[b+a*N]*c2[b]*iQ;
     }
-  }  
-  for (a=0;a<N;a++){
-    for (b=0;b<N;b++){
-      for (c=0;c<N;c++){
-        crr[a+c*N]+=H[b+a*N]*cnr[b+c*N];
-      }
-    }
   }
+//	  for (a=0;a<N;a++){
+  //	 for (b=0;b<N;b++){
+   //	 for (c=0;c<N;c++){
+     //   crr[a+c*N]+=H[b+a*N]*cnr[b+c*N];
+   //}
+  // }
+ // }
+	//new test luminescence
+    float alpha = 1.0f;
+  float beta  = 0.0f; // overwrite output matrices
+
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
+             N, N, N, alpha, H, N, cnr, N, beta, crr, N);
+
   // The weights in the site basis were calculated
 
   // Multiply weights to dipole operator
