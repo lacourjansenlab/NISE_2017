@@ -1317,8 +1317,9 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
         }
         /* Find eigenvalues and eigenvectors */
         diagonalizeLPD(H,e,N_site_si);
+        log=fopen("NISE.log","a");
+
         if (non->printLevel>1){
-            log=fopen("NISE.log","a");
             fprintf(log,"Boltzmann factors for segment %d: ", si);
         }
         /* Exponentiate [U=exp(-H/kBT)] */
@@ -1339,10 +1340,10 @@ void density_matrix(float *density_matrix, float *Hamiltonian_i,t_non *non,int N
                 fprintf(log," %e ", Boltzmann);
             }
         }
-        if (non->printLevel>0){
+        if (non->printLevel>1){
             fprintf(log,"\n" );
-            fclose(log);
         }
+        fclose(log);
 
         /* Transform back to site basis */ 
         transform_back_to_site(N_site_si, H, c2, matrix);
