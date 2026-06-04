@@ -483,7 +483,8 @@ int control(t_non* non) {
         return 1;
     }
     if (!strcmp(non->hamiltonian, "Coupling")) { }
-    else if (!strcmp(non->hamiltonian, "TransitionDipole") || !strcmp(non->hamiltonian, "ExtendedDipole")) {
+    else if (string_in_array(non->hamiltonian,(char*[]){"TransitionDipole",
+        "ShortTransitionDipole","LongTransitionDipole","ExtendedDipole"},4)){
         x_traj = fopen(non->positionFName, "rb");
         if (x_traj == NULL) {
           printf("Position file not found!\n");
@@ -548,7 +549,7 @@ int autodetect_singles(t_non* non){
     if (!strcmp(non->hamiltonian, "Coupling")) {
        identified2=-2;
     }
-    if (!strcmp(non->hamiltonian, "TransitionDipole") || !strcmp(non->hamiltonian, "ExtendedDipole")){
+    if (string_in_array(non->hamiltonian,(char*[]){"TransitionDipole","ShortTransitionDipole","LongTransitionDipole","ExtendedDipole"},4)){
        identified2=-2;
     }
     if (!strcmp(non->hamiltonian, "Full")) {
@@ -576,7 +577,7 @@ int autodetect_singles(t_non* non){
         if (!strcmp(non->hamiltonian, "Coupling")) {
            identified=-2;
         }
-        if (!strcmp(non->hamiltonian, "TransitionDipole") || !strcmp(non->hamiltonian, "ExtendedDipole")){
+        if (string_in_array(non->hamiltonian,(char*[]){"TransitionDipole","ShortTransitionDipole","LongTransitionDipole","ExtendedDipole"},4)){
            identified=-2;
         }
         if (!strcmp(non->hamiltonian, "Full")) {
