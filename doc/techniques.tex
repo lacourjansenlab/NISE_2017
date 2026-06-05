@@ -176,7 +176,7 @@ couplings between sites. If segments are specified in the input the excitons wil
 determined only within these segments and only intra-segment rates are determined,
 as transfer between weakly coupled segments are likely better described using the
 MCFRET theory. The calculated rate matrix is stored in the file \ilc{RedfieldRates.dat}
-and the exciton eigenstate information is stored in the \ilc{RedfieldRates.dat} file.
+and the exciton eigenstate information is stored in the \ilc{RedfieldStates.dat} file.
 
 \section{Dif (diffusion)$^{+}$}
 The mean square displacement of excitons are calculated using the positions provided
@@ -184,7 +184,7 @@ in the Positions file. Periodic boundary conditions are applied assuming a cube 
 The box size must be provided in the first column of the Positions file. Two diffusion
 properties are calculated. The diffusion of the exciton center is calculated by
 calculating the center of the excitation given it started on a specific site $j$:
-$x_{\textrm{ex},i}(t)=\langle \sum_j (x_j(t)-x_i(0)) |U_{ji}(t,0)|^2$ and then
+$x_{\textrm{ex},i}(t)=\langle \sum_j (x_j(t)-x_i(0)) |U_{ji}(t,0)|^2\rangle$ and then
 determining the mean square displacement as $MSD_{\textrm{ex}}(t)=\langle \sum_i  x_{\textrm{ex},i}(t)^2\rangle$.
 The other measure is based on the probability of starting on one site and being
 detected on another site $MSD_{\textrm{site}}(t)=\langle \sum_{ji} (x_j(t)-x_i(0))|U_{ji}(t,0)|^2\rangle$.
@@ -327,12 +327,47 @@ If a file called \ilc{Waitingtimes.dat} is present all the waiting times given i
 file (in fs) will be calculated simultaneously and the response function files will
 be named \ilc{RparI\_0fs.dat} etc.
 
-\section{FD$\_$CG$\_$2DES (coarse-grained fluroescence detected two-dimensional electronic spectroscopy)$^{+}$}
-This calculates the fluroescence detected two-dimensional electronic spectra with the
-coarse-grained approach \cite{Gonzalez-Migoni.2026.J.Chem.Phys..164.104112}. This
-allows the use of different quantum yields for different segments. It uses the same
-doorway and window functions as the CG$\_$2DES approach.
+\section{FD$\_$CG$\_$2DES (coarse-grained fluooescence detected two-dimensional electronic spectroscopy)$^{+}$}
+%This calculates the fluroescence detected two-dimensional electronic spectra with the
+%coarse-grained approach \cite{Gonzalez-Migoni.2026.J.Chem.Phys..164.104112}. This
+%allows the use of different quantum yields for different segments. It uses the same
+%doorway and window functions as the CG$\_$2DES approach.
 %These quantum yields can be obtained using the python script '' obtioned, where?
+This calculates the fluorescence detected two-dimensional electronic
+spectra with the
+coarse-grained approach \cite{Gonzalez-Migoni.2026.J.Chem.Phys..164.104112}. This
+allows the use of different quantum yields for different segments.
+It uses the same
+doorway and window functions as the CG$\_$2DES approach.
+Before running a F-2DES calculation on NISE, you'd need to have
+files containing:
+\begin{itemize}
+\item Your excitation energy transfer matrix (e.g. from MCFRET):
+\ilo{RateMatrix.dat}
+\item The transition dipole moments in binary as: \ilo{Dipole.bin}
+\item The Hamiltonian trajectory in binary as: \ilo{Energy.bin}
+\item A script for submitting your job as: \ilo{submitFDCG}
+\item An input file containing specifications on your submission as:
+\ilo{inputFDCG}
+\item Two text files containing your 1 and 2 photon quantum
+yields named: \ilo{Q1s.dat, Q2s.dat}
+\end{itemize}
+If you already have your window and doorway functions from a
+previous calculation, you can actually reduce the computation time
+by choosing \ilo{FD$\_$CG$\_$2DES$\_$combine} as the Technique in your
+input file. Be sure to copy the following files into the folder
+where you will be running your calculation:
+\begin{itemize}
+\item \ilo{windows$\_$SE.dat}
+\item \ilo{windows$\_$GB.dat}
+\item \ilo{windows$\_$EA.dat}
+\item \ilo{doorway.dat}
+\end{itemize}
+The text files containing the 1 and 2 photon quantum yields can be
+obtained by running the \ilc{QYields.py} found in the
+\ilc{CG-2DES$\_$LH2} folder of \ilc{NISE$\_$Tutorials}. Note that the names of the quantum yield files should be
+\ilo{Q1s.dat} and \ilo{Q2s.dat} and the quantum yields should be provided in the order
+described in Ref. \cite{Gonzalez-Migoni.2026.J.Chem.Phys..164.104112}.
 
 \section{2DIRRaman$^{*}$}
 This calculates the two-dimensional infrared raman spectra assuming coupled three

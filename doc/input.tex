@@ -169,7 +169,7 @@ The NISE program use the following input:\\
 \item [HamiltonianType] [Full/Coupling/TransitionDipole/ExtendedDipole] (Full is the default)
 \item [Couplingfile] [File name] (The file contains one Hamiltonian snapshot from which the couplings will be used.)
 \item [Positionfile] [File name] (Only needed for TransitionDipole or ExtendedDipole HamiltonianType or for exciton diffusion calculations)
-\item [SingeShiftfile] [File name] (File containing site specific energy shifts.
+\item [SingleShiftfile] [File name] (File containing site specific energy shifts.
 The first number in the file is the number of sites to shift followed by lines with site index (starting from 0),
 scaling factor, $a$, and shift, $b$, in cm$^{-1}$. The new frequency is calculated as $\omega_{{new}}=\omega_{{old}}*a+b$.  This file is only used if the keyword SingeShiftfile is included in the input.)
 \item [PDBfile] [File name]
@@ -215,7 +215,7 @@ all transitions by the average the oscillations of the time-evolution are reduce
 the simulations can be performed with longer distance between the time points. Second,
 the output is reduced to frequencies within the min and the max which reduce file size.
 
-The Lifetime is only applied during the coherence times ($t_1$ and $t_3$ ) according 
+The Lifetime is only applied during the coherence times ($t_1$ and $t_3$) according 
 to the formula in Ref. \citenum{Liang.2012.JCTC.8.1706}. The waiting time dependence
 can trivially be accounted for by  multiplying the whole spectrum with
 $\exp( -t_2 /T_1 )$. For apodization with an exponential or gaussian function the
