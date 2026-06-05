@@ -1,10 +1,20 @@
 # NISE_2017
 This is the current development version of a quantum classical package for calculating coherent multidimensional spectra (as FTIR, SFG, 2DIR, 2DES, 2DIRraman, 2DSFG, and F-2DES). 
 # General Description
-The NISE3.1 code was originally developed by Thomas la Cour Jansen. Please, cite the appropriate references [1–6] when publishing work using this code. The code allows the calculation of the linear absorption,linear dichroism, sum-frequency generation, two-dimensional spectra (IR,UVvis, and SFG), population transfer, exciton diffusion and integrated anisotropy using the full nonadiabatic semi-classical numerical integration of the Schrödinger equation approach [2] and the sparse matrix optimization approach [4]. The code allows treating spectra of diverse systems involving intra- and intermolecular energy transfer [1,3,7–9], non-Gaussian dynamics [10, 11], surfaces [5], and chemical exchange [12]. This manual is not intended as an introduction to two-dimensional spectroscopy. The user is directed to the references including recent reviews [2,13–16,20] and books for more information [17–19]. The code use wavenumbers for frequencies and times are femtoseconds. The transition dipoles and transition polarizabilities may be given in any desired units. This version has MPI and OpenMP implementation for parallel use for all 2D methods [21].
-Feedback on the program and the manual are welcome via e-mail: t.l.c.jansen@rug.nl or contribute an issue on the gitHub repository. Change in the code is allowed, but on own risk, and should be reported clearly in publications. Redistribution of the code must happen in accordance with the license.
+The NISE3.1 code was originally developed by Thomas la Cour Jansen. Please, cite the appropriate references [1,2,4,6,21] when publishing work using this code.
+The code allows the calculation of the linear absorption,linear dichroism, sum-frequency generation, two-dimensional spectra (IR, UVvis, and SFG), population transfer, exciton diffusion and integrated anisotropy using the full nonadiabatic semi-classical numerical integration of the Schrödinger equation approach [2] and the sparse matrix optimization approach [4].
+The code allows treating spectra of diverse systems involving intra- and intermolecular energy transfer [1,3,7–9], non-Gaussian dynamics [10,11], surfaces [5], and chemical exchange [12].
+The program includes codes for energy transfer calculations with the multi-chromophoric fluorescence resonance energy transfer method [27] and coarse grained NISE methods for two-dimensional electronic spectroscopy [26,28].
+This manual is not intended as an introduction to two-dimensional spectroscopy. The user is directed to the references including recent reviews [2,13–16,20] and books for more information [17–19].
+The code use wavenumbers for frequencies and times are femtoseconds. The transition dipoles and transition polarizabilities may be given in Debye and cube Ångstrøm.
+This version has MPI and OpenMP implementation for parallel use for all 2D methods [21].
+OpenMP as LAPACK and BLAS optimization are automatically used in many code parts.
+Feedback on the program and the manual are welcome via e-mail: t.l.c.jansen@rug.nl or contribute an issue on the gitHub repository.
+Change in the code is allowed, but on own risk, and should be reported clearly in publications.
+Redistribution of the code must happen in accordance with the license.
 
-Hamiltonians for the NISE code can be created with the AIM program [22,23]. An external tutorial is available [24] and a YouTube video demonstration of the installation of the programme [25].
+Hamiltonians for the NISE code can be created with the AIM program [22,23].
+An external tutorial is available [24] and a YouTube video demonstration of the installation of the programme [25].
 
 ## Official NISE developer team
 Thomas L.C. Jansen, Computational Spectroscopy group, University of Groningen\
@@ -41,3 +51,6 @@ New York, 1995.
 23. AIM: [https://github.com/Kimvana/AIM](https://github.com/Kimvana/AIM) 
 24. NISE Tutorials: [https://github.com/GHlacour/NISE_Tutorials](https://github.com/GHlacour/NISE_Tutorials)
 25. NISE installation video: [YouTube](https://www.youtube.com/watch?v=npvV9UOFmDg) 
+26. S. Gonzalez-Migoni and T. L. C. Jansen, J. Chem. Phys. 164:104112 (2026)
+27. K. Zhong, V. Erić, H. L. Nguyen, K. E. van Adrichem, G. A. H. ten Hoven, M. Manrho, J. Knoester, and T. L C. Jansen, J. Chem. Theory Comput. 21:254-266 (2025)
+28. K. Zhong, H. L. Nguyen, T. N. Do, H.-S. Tan, J. Knoester, and T. L. C. Jansen, J. Chem. Theory Comput. 20:6111-6124 (2024)
