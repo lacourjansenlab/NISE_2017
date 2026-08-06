@@ -2,6 +2,7 @@
 Also check the manual
 
 ## MacOS 15.0.1 with homebrew
+```
 brew install libomp
 brew install imagemagick
 
@@ -9,6 +10,9 @@ mkdir build
 cd build
 cmake .. -DCMAKE_C_COMPILER="clang" -DOpenMP_C_LIB_NAMES="libomp" -DOpenMP_CXX_LIB_NAMES="libomp" -DOpenMP_libomp_LIBRARY="/opt/homebrew/opt/libomp/lib/libomp.dylib" -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
 make
+```
 
 # With openmlas from: brew install openblas 
+```
 cmake .. -DCMAKE_C_COMPILER="clang" -DOpenMP_C_LIB_NAMES="libomp" -DOpenMP_CXX_LIB_NAMES="libomp" -DOpenMP_libomp_LIBRARY="/opt/homebrew/opt/libomp/lib/libomp.dylib" -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DCMAKE_C_FLAGS="-I/opt/homebrew/opt/openblas/include" -DCMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/openblas/lib -lopenblas"
+```
