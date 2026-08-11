@@ -34,7 +34,7 @@ void calc_CD(t_non *non){
   /* File handles */
   FILE *H_traj,*mu_traj,*pos_traj;
   FILE *C_traj;
-  FILE *outone,*log;
+  FILE *log;
   FILE *Cfile;
 
   /* Integers */
@@ -117,7 +117,7 @@ void calc_CD(t_non *non){
   pos=(float *)calloc(non->singles,sizeof(float));
   pos_xyz=(float *)calloc(non->singles*3,sizeof(float));
 
-  printf("\n Note that the CD implementation assumes that the positions of\n");
+  printf("\nNote that the CD implementation assumes that the positions of\n");
   printf("the full system specified in the Position file is contained\n");
   printf("in a box as periodic boundary contitions are NOT applied.\n\n");
 
@@ -215,7 +215,7 @@ void calc_CD(t_non *non){
                     z=3-x-y;
 	      /* Read mu(tj) */
                     if (!strcmp(non->hamiltonian,"Coupling")){
-                        copyvec(mu_xyz+non->singles*x,mu_eg,non->singles);
+                        copyvec(mu_xyz+non->singles*y,mu_eg,non->singles);
                     } else {
 	                if (read_mue(non,mu_eg,mu_traj,tj,y)!=1){
 	                    printf("Dipole trajectory file to short, could not fill buffer!!!\n");
@@ -334,16 +334,8 @@ void calc_CD(t_non *non){
     fclose(Cfile);
   }
 
-  outone=fopen("TD_CD.dat","w");
-  for (t1=0;t1<non->tmax1;t1+=non->dt1){
-/*    fprintf(outone,"%f %e %e\n",t1*non->deltat,re_S_1[t1]/samples,im_S_1[t1]/samples); */
-      fprintf(outone,"%f ",t1*non->deltat);
-      for (ip=0;ip<pro_dim;ip++){
-         fprintf(outone,"%e %e ",re_S_1[t1+ip*non->tmax]/samples,im_S_1[t1+ip*non->tmax]/samples);
-      }
-      fprintf(outone,"\n");
-  }
-  fclose(outone);
+  // Save response function
+  save_time_domain_response(non,"TD_CD.dat",re_S_1,im_S_1,pro_dim,samples);
 
   /* Do Forier transform and save */
   do_1DFFT(non,"CD.dat",re_S_1,im_S_1,samples);
