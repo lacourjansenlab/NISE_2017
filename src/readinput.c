@@ -244,19 +244,19 @@ void readInput(int argc, char* argv[], t_non* non) {
 
     // Decide propagation scheme
     non->propagation = 0;
-    if (!strcmp(prop, "Coupling")) {
+    if (!strcmp_nocase(prop, "Coupling")) {
         non->propagation = 1;
         printf("\nUsing propagation scheme 'Coupling'!\n");
         printf("Coupling cutoff %f effective during t1, t2, and t3.\n\n",
                non->couplingcut);
     }
-    if (!strcmp(prop, "Diagonal")) {
+    if (!strcmp_nocase(prop, "Diagonal")) {
         non->propagation = 2;
         printf("\nUsing propagation with full diagonalization!\n\n");
         printf(RED "Presently NOT implemented. Use sparse with no cutoff!\n" RESET);
         exit(0);
     }
-    if (!strcmp(prop, "RK4")) {
+    if (!strcmp_nocase(prop, "RK4")) {
         non->propagation = 3;
         printf("\nUsing propagation scheme 'RK4' with coupling cut!\n");
         printf("Coupling cutoff %f effective during t1, t2, and t3.\n\n",
@@ -264,7 +264,7 @@ void readInput(int argc, char* argv[], t_non* non) {
     }
 
 
-    if (!strcmp(windowC, "Hann")) {
+    if (!strcmp_nocase(windowC, "Hann")) {
         non->window = 1;
         printf("\nUsing a Hann window function!\n");
         printf("For 2D techniques, this need to be specified\n");
@@ -284,12 +284,20 @@ void readInput(int argc, char* argv[], t_non* non) {
         printf("smaller than this value.\n");
     }
 
-    if ((!strcmp(non->technique, "2DIR")) || (!strcmp(non->technique, "GBIR")) || (!strcmp(non->technique, "SEIR")) ||
+/*    if ((!strcmp(non->technique, "2DIR")) || (!strcmp(non->technique, "GBIR")) || (!strcmp(non->technique, "SEIR")) ||
      (!strcmp(non->technique, "EAIR")) || (!strcmp(non->technique, "noEAIR")) || (!strcmp(non->technique, "2DUVvis")) ||
      (!strcmp(non->technique, "EAUVvis")) || (!strcmp(non->technique, "noEAUVvis")) || (!strcmp(non->technique, "2DSFG")) ||
      (!strcmp(non->technique, "SEUVvis")) || (!strcmp(non->technique, "GBUVvis"))|| (!strcmp(non->technique, "2DIRraman"))||
      (!strcmp(non->technique, "2DIRraman1"))|| (!strcmp(non->technique, "2DIRraman2"))|| (!strcmp(non->technique, "2DIRraman3"))) {
         printf("\nThe waiting time will be %f fs.\n\n", non->tmax2 * non->deltat);
+    }*/
+
+    // Inform the user about the waiting and coherence times
+    if ((string_in_array(non->technique,(char*[]){"2DIR","GBIR","SEIR","EAIR","noEAIR",
+        "2DUVvis","EAUVvis","noEAUVvis","SEUVvis","GBUVvis",
+        "2DSFG","2DIRraman","2DIRraman1","2DIRraman2","2DIRraman3"},15))) {
+        printf("\nThe waiting time will be %f fs.\n\n", non->tmax2 * non->deltat);
+        printf("\nThe maximal coherence times will be %f fs and %f fs.\n\n", non->tmax1 * non->deltat, non->tmax3 * non->deltat);
     }
 
     // Read single shifts 

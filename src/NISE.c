@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Call the Linear Absorption Routine
-    if (!strcmp(non->technique, "Absorption")) {
+    if (!strcmp_nocase(non->technique, "Absorption")) {
         // Does not support MPI
         if (parentRank == 0) {
 		if (cpus>1) not_parallel();
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Call the Linear DOS Routine */
-    if (!strcmp(non->technique, "DOS")) {
+    if (!strcmp_nocase(non->technique, "DOS")) {
         /* Does not support MPI */
         if (parentRank == 0) {
                 calc_DOS(non);
@@ -257,23 +257,23 @@ int main(int argc, char* argv[]) {
     }
 
     // Call the Linear Dichroism Routine
-    if (!strcmp(non->technique, "LD")) {
+    if (!strcmp_nocase(non->technique, "LD")) {
         // Does not support MPI
         if (parentRank == 0){
             if (cpus>1) not_parallel();
             LD(non);
-	}
+	    }
     }
 
     // Call the Circular Dichroism Routine
-    if (!strcmp(non->technique, "CD")) {
+    if (!strcmp_nocase(non->technique, "CD")) {
         // Does not support MPI
         if (parentRank == 0)
             calc_CD(non);
     }
 
     /* Call the Raman Routine */
-    if (!strcmp(non->technique, "Raman")) {
+    if (!strcmp_nocase(non->technique, "Raman")) {
         /* Does not support MPI */
         if (parentRank == 0){
             if (cpus>1) not_parallel();
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
      }
 
     /* Call the Sum Frequency Generation Routine */
-    if (!strcmp(non->technique, "SFG")) {
+    if (!strcmp_nocase(non->technique, "SFG")) {
         //Does not support MPI
         if (parentRank == 0){
             if (cpus>1) not_parallel();
@@ -332,7 +332,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Call the 1DFT calculation routine
-    if (!strcmp(non->technique, "1DFFT")) {
+    if (!strcmp_nocase(non->technique, "1DFFT")) {
         // Does not support MPI
         if (parentRank == 0) {
 		if (cpus>1) not_parallel();
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
         }
     }
     // Call the lineshape funnction for absorption
-    if (!strcmp(non->technique, "Lineshape_FFT")) {
+    if (!strcmp_nocase(non->technique, "Lineshape_FFT")) {
         // Does not support MPI
         if (parentRank == 0) {
 		if (cpus>1) not_parallel();
