@@ -279,6 +279,27 @@ find_package_handle_standard_args(FFTW
         HANDLE_COMPONENTS
         )
 
+# Add the FFTW library directories to the build RPATH.
+foreach(_fftw_lib
+        ${FFTW_DOUBLE_LIB}
+        ${FFTW_FLOAT_LIB}
+        ${FFTW_LONGDOUBLE_LIB}
+        ${FFTW_DOUBLE_THREADS_LIB}
+        ${FFTW_FLOAT_THREADS_LIB}
+        ${FFTW_LONGDOUBLE_THREADS_LIB}
+        ${FFTW_DOUBLE_OPENMP_LIB}
+        ${FFTW_FLOAT_OPENMP_LIB}
+        ${FFTW_LONGDOUBLE_OPENMP_LIB})
+
+    if(_fftw_lib)
+        get_filename_component(_fftw_lib_dir "${_fftw_lib}" DIRECTORY)
+        list(APPEND CMAKE_BUILD_RPATH "${_fftw_lib_dir}")
+    endif()
+
+endforeach()
+
+list(REMOVE_DUPLICATES CMAKE_BUILD_RPATH)
+
 mark_as_advanced(
         FFTW_INCLUDE_DIRS
         FFTW_LIBRARIES
@@ -292,3 +313,13 @@ mark_as_advanced(
         FFTW_DOUBLE_OPENMP_LIB
         FFTW_LONGDOUBLE_OPENMP_LIB
         )
+
+# Add FFTW library directories to the RPATH of targets created after find_package(FFTW).
+foreach(_fftw_lib ${FFTW_LIBRARIES})
+    if(IS_ABSOLUTE "${_fftw_lib}")
+        get_filename_component(_fftw_dir "${_fftw_lib}" DIRECTORY)
+        list(APPEND FFTW_LIBRARY_DIRS "${_fftw_dir}")
+    endif()
+endforeach()
+
+list(REMOVE_DUPLICATES FFTW_LIBRARY_DIRS)

@@ -3,6 +3,10 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+set(CMAKE_BUILD_RPATH_USE_ORIGIN FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Define libraries
 add_library(random_lib OBJECT randomlib.h randomlib.c)
 
@@ -36,16 +40,40 @@ add_executable(translate
 )
 
 ### Link libraries
-# LAPACK
+# LAPACK / BLAS
 find_package(LAPACK REQUIRED)
-target_link_libraries(NISE ${LAPACK_LIBRARIES})
-target_link_libraries(translate ${LAPACK_LIBRARIES})
-target_link_libraries(NISE ${BLAS_LIBRARIES})
+find_package(BLAS REQUIRED)
+
+foreach(BLAS_LIB ${BLAS_LIBRARIES})
+    if(IS_ABSOLUTE "${BLAS_LIB}")
+        get_filename_component(BLAS_LIBRARY_DIR
+            "${BLAS_LIB}"
+            DIRECTORY
+        )
+        set_property(TARGET NISE APPEND PROPERTY
+            BUILD_RPATH "${BLAS_LIBRARY_DIR}"
+        )
+        set_property(TARGET translate APPEND PROPERTY
+            BUILD_RPATH "${BLAS_LIBRARY_DIR}"
+        )
+    endif()
+endforeach()
+
+target_link_libraries(NISE
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
+)
+
+target_link_libraries(translate
+    ${LAPACK_LIBRARIES}
+    ${BLAS_LIBRARIES}
+)
 
 # FFTW
 # Not using the FFTW3 script, since FFTW3 installed using ./configure && make && make install
 # do not properly export those scripts. Therefore we use a custom script.
 find_package(FFTW REQUIRED)
+set_property(TARGET NISE APPEND PROPERTY BUILD_RPATH "${FFTW_LIBRARY_DIRS}")
 target_link_libraries(NISE ${FFTW_LIBRARIES})
 target_include_directories(NISE PUBLIC ${FFTW_INCLUDE_DIRS})
 target_link_libraries(translate ${FFTW_LIBRARIES})
