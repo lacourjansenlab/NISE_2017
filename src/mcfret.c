@@ -16,7 +16,7 @@
 
 /* Main MCFRET routine only calling and combining the other subroutines */ 
 void mcfret(t_non *non){
-    int nn2;
+    size_t nn2;
     int segments;
     /* Response functions for emission and absorption: real and imaginary part*/
     float *re_Abs,*im_Abs;
@@ -31,26 +31,14 @@ void mcfret(t_non *non){
     float *ave_vecr;
 
     /* Allocate memory for the response functions */
-    nn2=non->singles*non->singles;
-    size_t max_size = (size_t)-1;
-    if (nn2 * non->tmax1 > max_size / sizeof(float))
-    {
-        printf("Number of elements bigger than maximum size");
-        exit(1);
-    }
-    nn2=non->singles*non->singles;
-    re_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    im_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    re_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    im_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    J=(float *)calloc(nn2,sizeof(float));
-    E=(float *)calloc(non->singles,sizeof(float));
-    ave_vecr=(float *)calloc(non->singles*non->singles,sizeof(float));
-    if (re_Abs == NULL || im_Abs == NULL || re_Emi == NULL || im_Emi == NULL)
-    {
-        printf("One of these is the problem");
-        exit(1);
-    }
+    nn2=(size_t)non->singles*non->singles;
+    re_Abs=(float *)safe_calloc(nn2*non->tmax1,sizeof(float));
+    im_Abs=(float *)safe_calloc(nn2*non->tmax1,sizeof(float));
+    re_Emi=(float *)safe_calloc(nn2*non->tmax1,sizeof(float));
+    im_Emi=(float *)safe_calloc(nn2*non->tmax1,sizeof(float));
+    J=(float *)safe_calloc(nn2,sizeof(float));
+    E=(float *)safe_calloc((size_t)non->singles,sizeof(float));
+    ave_vecr=(float *)calloc(nn2,sizeof(float));
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
