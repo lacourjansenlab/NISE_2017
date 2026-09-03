@@ -2,6 +2,7 @@
 #define _NONSUBS_
 
 #include "lapack.h"
+void *safe_calloc(size_t num, size_t size);
 void** calloc2D(size_t nRows, size_t nCols, size_t size, size_t sizeP);
 void free2D(void** arr);
 void not_parallel();

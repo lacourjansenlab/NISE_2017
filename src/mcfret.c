@@ -32,6 +32,13 @@ void mcfret(t_non *non){
 
     /* Allocate memory for the response functions */
     nn2=non->singles*non->singles;
+    size_t max_size = (size_t)-1;
+    if (nn2 * non->tmax1 > max_size / sizeof(float))
+    {
+        printf("Number of elements bigger than maximum size");
+        exit(1);
+    }
+    nn2=non->singles*non->singles;
     re_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
     im_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
     re_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
@@ -39,7 +46,11 @@ void mcfret(t_non *non){
     J=(float *)calloc(nn2,sizeof(float));
     E=(float *)calloc(non->singles,sizeof(float));
     ave_vecr=(float *)calloc(non->singles*non->singles,sizeof(float));
-
+    if (re_Abs == NULL || im_Abs == NULL || re_Emi == NULL || im_Emi == NULL)
+    {
+        printf("One of these is the problem");
+        exit(1);
+    }
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
