@@ -38,7 +38,7 @@ void mcfret(t_non *non){
     im_Emi=(float *)safe_calloc(nn2*non->tmax1,sizeof(float));
     J=(float *)safe_calloc(nn2,sizeof(float));
     E=(float *)safe_calloc((size_t)non->singles,sizeof(float));
-    ave_vecr=(float *)calloc(nn2,sizeof(float));
+    ave_vecr=(float *)safe_calloc(nn2,sizeof(float));
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
