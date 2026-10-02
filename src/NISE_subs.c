@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
@@ -14,6 +15,22 @@
 #include <cblas.h>
 
 // Subroutines for nonadiabatic code
+
+// Safe memory allocation
+void *safe_calloc(size_t num, size_t size){
+    if (num > SIZE_MAX / size){
+        printf("Number of elements is bigger than the maximum allowed.");
+        printf("Ending the program.");
+        exit(1);
+    }
+    void *ptr = calloc(num, size);
+    if (ptr == NULL){
+        printf("Memory exceeded. Allocation returned NULL pointer for %zu bytes.", num*size);
+        printf("Ending the program.");
+        exit(1);
+    }
+    return ptr;
+}
 
 // Allocate 2D memory blocks
 void** calloc2D(size_t nRows, size_t nCols, size_t size, size_t sizeP) {

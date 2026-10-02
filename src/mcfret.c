@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
@@ -18,6 +19,7 @@
 void mcfret(t_non *non){
     int nn2;
     int segments;
+    size_t response_size;
     /* Response functions for emission and absorption: real and imaginary part*/
     float *re_Abs,*im_Abs;
     float *re_Emi,*im_Emi;
@@ -30,16 +32,23 @@ void mcfret(t_non *non){
     float *coherence_matrix;
     float *ave_vecr;
 
-    /* Allocate memory for the response functions */
+    /* Compute system size and look out for overflows */
     nn2=non->singles*non->singles;
-    re_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    im_Abs=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    re_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    im_Emi=(float *)calloc(nn2*non->tmax1,sizeof(float));
-    J=(float *)calloc(nn2,sizeof(float));
-    E=(float *)calloc(non->singles,sizeof(float));
-    ave_vecr=(float *)calloc(non->singles*non->singles,sizeof(float));
+    if (non->tmax1 != 0 && nn2 > SIZE_MAX/non->tmax1){
+        printf("The system size caused an overflow. Try lowering the runtime parameter.\n");
+        printf("For the number of singles used, a maximum runtime of %zu is allowed.\n", SIZE_MAX/nn2);
+        exit(0);
+    }
+    response_size = (size_t)nn2*non->tmax1;
 
+    /* Allocate memory for the response functions */
+    re_Abs=(float *)safe_calloc(response_size,sizeof(float));
+    im_Abs=(float *)safe_calloc(response_size,sizeof(float));
+    re_Emi=(float *)safe_calloc(response_size,sizeof(float));
+    im_Emi=(float *)safe_calloc(response_size,sizeof(float));
+    J=(float *)safe_calloc(nn2,sizeof(float));
+    E=(float *)safe_calloc(non->singles,sizeof(float));
+    ave_vecr=(float *)safe_calloc(nn2,sizeof(float));
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
