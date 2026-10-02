@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
@@ -17,8 +18,7 @@
 
 // Safe memory allocation
 void *safe_calloc(size_t num, size_t size){
-    size_t max_size = (size_t)-1;
-    if (num > max_size / size){
+    if (num > SIZE_MAX / size){
         printf("Number of elements is bigger than the maximum allowed.");
         printf("Ending the program.");
         exit(1);
