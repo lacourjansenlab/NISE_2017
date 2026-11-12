@@ -34,7 +34,7 @@ void *safe_calloc(size_t num, size_t size, const char *msg){
         // But because num*size would itself overflow we check for num > SIZE_MAX / size instead.
         // Nonetheless, we must check first that size is not zero.
         printf("Memory request too large. %zu elements of %zu bytes overflow size_t.\n", num, size);
-        printf("Reduce memory requirements of the calculation./n")
+        printf("Reduce memory requirements of the calculation./n");
         printf("Ending the program.\n");
         if (!strcmp(msg, "")){
             printf("User message: %s", msg);
@@ -46,7 +46,7 @@ void *safe_calloc(size_t num, size_t size, const char *msg){
         // If calloc returns NULL pointer after the previous check, then the system cannot
         // provide the memory requested.
         printf("Memory exceeded. Could not reserve %.2f GB.", num*size/1.0e9);
-        printf("Requesting more memory or reducing memory requirements is needed./n")
+        printf("Requesting more memory or reducing memory requirements is needed./n");
         printf("Ending the program./n");
         if (!strcmp(msg, "")){
             printf("User message: %s", msg);

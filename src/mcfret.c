@@ -34,12 +34,12 @@ void mcfret(t_non *non){
 
     /* Compute system size and look out for overflows */
     nn2=non->singles*non->singles;
-    if (non->tmax1 != 0 && nn2 > SIZE_MAX/non->tmax1){
+    if (non->tmax1 != 0 && (size_t)nn2 > SIZE_MAX/(size_t)non->tmax1){
         printf("The system size caused an overflow. Try lowering the runtime parameter.\n");
-        printf("For the number of singles used, a maximum runtime of %zu is allowed.\n", SIZE_MAX/nn2);
-        exit(0);
+        printf("For the number of singles used (%zu), a runtime larger than %zu would result in an overflow.\n",non->tmax1, SIZE_MAX/(size_t)nn2);
+        exit(1);
     }
-    response_size = (size_t)nn2*non->tmax1;
+    response_size = (size_t)nn2*(size_t)non->tmax1;
 
     /* Allocate memory for the response functions */
     re_Abs=(float *)safe_calloc(response_size,sizeof(float),"");
