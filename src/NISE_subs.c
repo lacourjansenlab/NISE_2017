@@ -17,16 +17,30 @@
 // Subroutines for nonadiabatic code
 
 // Safe memory allocation
-void *safe_calloc(size_t num, size_t size){
-    if (num > SIZE_MAX / size){
-        printf("Number of elements is bigger than the maximum allowed.");
-        printf("Ending the program.");
+void *safe_calloc(size_t num, size_t size, const char *msg){
+    if (num == 0){
+        printf("Allocation of zero elements would return a NULL pointer.\n");
+        printf("Ending the program.\n");
+        if (!strcmp(msg, "")){
+            printf("User message: %s", msg);
+        }
+        exit(1);
+    }
+    if (size != 0 && num > SIZE_MAX / size){
+        printf("Number of elements is bigger than the maximum allowed.\n");
+        printf("Ending the program.\n");
+        if (!strcmp(msg, "")){
+            printf("User message: %s", msg);
+        }
         exit(1);
     }
     void *ptr = calloc(num, size);
     if (ptr == NULL){
         printf("Memory exceeded. Allocation returned NULL pointer for %zu bytes.", num*size);
         printf("Ending the program.");
+        if (!strcmp(msg, "")){
+            printf("User message: %s", msg);
+        }
         exit(1);
     }
     return ptr;

@@ -42,13 +42,13 @@ void mcfret(t_non *non){
     response_size = (size_t)nn2*non->tmax1;
 
     /* Allocate memory for the response functions */
-    re_Abs=(float *)safe_calloc(response_size,sizeof(float));
-    im_Abs=(float *)safe_calloc(response_size,sizeof(float));
-    re_Emi=(float *)safe_calloc(response_size,sizeof(float));
-    im_Emi=(float *)safe_calloc(response_size,sizeof(float));
-    J=(float *)safe_calloc(nn2,sizeof(float));
-    E=(float *)safe_calloc(non->singles,sizeof(float));
-    ave_vecr=(float *)safe_calloc(nn2,sizeof(float));
+    re_Abs=(float *)safe_calloc(response_size,sizeof(float),"");
+    im_Abs=(float *)safe_calloc(response_size,sizeof(float),"");
+    re_Emi=(float *)safe_calloc(response_size,sizeof(float),"");
+    im_Emi=(float *)safe_calloc(response_size,sizeof(float),"");
+    J=(float *)safe_calloc(nn2,sizeof(float),"");
+    E=(float *)safe_calloc(non->singles,sizeof(float),"");
+    ave_vecr=(float *)safe_calloc(nn2,sizeof(float),"");
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
