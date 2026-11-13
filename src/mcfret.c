@@ -36,19 +36,19 @@ void mcfret(t_non *non){
     nn2=non->singles*non->singles;
     if (non->tmax1 != 0 && (size_t)nn2 > SIZE_MAX/(size_t)non->tmax1){
         printf("The system size caused an overflow. Try lowering the runtime parameter.\n");
-        printf("For the number of singles used (%zu), a runtime larger than %zu would result in an overflow.\n",non->singles, SIZE_MAX/(size_t)nn2);
+        printf("For the number of singles used (%d), a runtime larger than %zu would result in an overflow.\n",non->singles, SIZE_MAX/(size_t)nn2);
         exit(1);
     }
     response_size = (size_t)nn2*(size_t)non->tmax1;
 
     /* Allocate memory for the response functions */
-    re_Abs=(float *)safe_calloc(response_size,sizeof(float),"");
-    im_Abs=(float *)safe_calloc(response_size,sizeof(float),"");
-    re_Emi=(float *)safe_calloc(response_size,sizeof(float),"");
-    im_Emi=(float *)safe_calloc(response_size,sizeof(float),"");
-    J=(float *)safe_calloc(nn2,sizeof(float),"");
-    E=(float *)safe_calloc(non->singles,sizeof(float),"");
-    ave_vecr=(float *)safe_calloc(nn2,sizeof(float),"");
+    re_Abs=(float *)safe_calloc(response_size,sizeof(float),"mcfret.c: re_Abs");
+    im_Abs=(float *)safe_calloc(response_size,sizeof(float),"mcfret.c: im_Abs");
+    re_Emi=(float *)safe_calloc(response_size,sizeof(float),"mcfret.c: re_Emi");
+    im_Emi=(float *)safe_calloc(response_size,sizeof(float),"mcfret.c: im_Emi");
+    J=(float *)safe_calloc(nn2,sizeof(float),"mcfret.c: J");
+    E=(float *)safe_calloc(non->singles,sizeof(float),"mcfret.c: E");
+    ave_vecr=(float *)safe_calloc(nn2,sizeof(float),"mcfret.c: ave_vecr");
     /* The rate matrix is determined by the integral over t1 for */
     /* Tr [ J * Abs(t1) * J * Emi(t1) ] */
 
