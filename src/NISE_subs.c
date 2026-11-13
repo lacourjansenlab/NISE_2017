@@ -26,7 +26,7 @@ void *safe_calloc(size_t num, size_t size, const char *msg){
         printf("Check that the number of elements or the size of them are positive.\n");
         printf("Ending the program.\n");
         if (strcmp(msg, "")){
-            printf("User message: %s", msg);
+            printf("User message: %s\n", msg);
         }
         exit(1);
     }
@@ -38,7 +38,7 @@ void *safe_calloc(size_t num, size_t size, const char *msg){
         printf("Reduce memory requirements of the calculation.\n");
         printf("Ending the program.\n");
         if (strcmp(msg, "")){
-            printf("User message: %s", msg);
+            printf("User message: %s\n", msg);
         }
         exit(1);
     }
@@ -50,7 +50,7 @@ void *safe_calloc(size_t num, size_t size, const char *msg){
         printf("Requesting more memory or reducing memory requirements is needed.\n");
         printf("Ending the program.\n");
         if (strcmp(msg, "")){
-            printf("User message: %s", msg);
+            printf("User message: %s\n", msg);
         }
         exit(1);
     }
