@@ -22,7 +22,8 @@
 void *safe_calloc(size_t num, size_t size, const char *msg){
     if (num == 0 || size == 0){
         // Look out for zero elements or zero-sized elements
-        printf("Allocation of zero elements or elements of zero size would return a NULL pointer.\n");
+        printf("Allocation of zero elements or elements of zero size requested.\n");
+        printf("Check that the number of elements or the size of them are positive.\n");
         printf("Ending the program.\n");
         if (strcmp(msg, "")){
             printf("User message: %s", msg);
