@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
@@ -14,6 +15,47 @@
 #include <cblas.h>
 
 // Subroutines for nonadiabatic code
+
+// Safe memory allocation checking for zero elements allocation, overflow of size type,
+// or memory exceeded. Stops the program in any of these cases and returns an informative
+// message.
+void *safe_calloc(size_t num, size_t size, const char *msg){
+    if (num == 0 || size == 0){
+        // Look out for zero elements or zero-sized elements
+        printf("Allocation of zero elements or elements of zero size requested.\n");
+        printf("Check that the number of elements or the size of them are positive.\n");
+        if (strcmp(msg, "")){
+            printf("User message: %s\n", msg);
+        }
+        printf("Ending the program.\n");
+        exit(1);
+    }
+    if (size != 0 && num > SIZE_MAX / size){
+        // Look out for an overflow of the size_t type. If num*size > SIZE_MAX, then it overflows.
+        // But because num*size would itself overflow we check for num > SIZE_MAX / size instead.
+        // Nonetheless, we must check first that size is not zero.
+        printf("Memory request too large. %zu elements of %zu bytes overflow size_t.\n", num, size);
+        printf("Reduce memory requirements of the calculation.\n");
+        if (strcmp(msg, "")){
+            printf("User message: %s\n", msg);
+        }
+        printf("Ending the program.\n");
+        exit(1);
+    }
+    void *ptr = calloc(num, size);
+    if (ptr == NULL){
+        // If calloc returns NULL pointer after the previous check, then the system cannot
+        // provide the memory requested.
+        printf("Memory exceeded. Could not reserve %.2f GB.\n", num*size/1.0e9);
+        printf("Requesting more memory or reducing memory requirements is needed.\n");
+        if (strcmp(msg, "")){
+            printf("User message: %s\n", msg);
+        }
+        printf("Ending the program.\n");
+        exit(1);
+    }
+    return ptr;
+}
 
 // Allocate 2D memory blocks
 void** calloc2D(size_t nRows, size_t nCols, size_t size, size_t sizeP) {
